@@ -10,27 +10,8 @@
 <body class="bg-slate-50 text-slate-800 font-sans">
 
     <!-- Header / Navigation -->
-    <header class="bg-slate-900 text-white shadow-md">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-            
-            <!-- Logo & Brand Name -->
-            <a href="index.html" class="flex items-center space-x-3 group">
-                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
-                <span class="text-2xl font-bold tracking-wide group-hover:text-purple-400 transition">RJD Archers</span>
-            </a>
-
-            <!-- Navigation Links in Purple -->
-            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
-                <a href="index.html" class="text-purple-400 hover:text-white">Home</a>
-                <a href="beginners.html" class="text-purple-400 hover:text-white">Beginner's Courses</a>
-                <a href="tournaments.html" class="text-purple-400 hover:text-white">Tournaments & Results</a>
-                <a href="location.html" class="text-purple-400 hover:text-white">Venues & Location</a>
-                <a href="links.html" class="text-purple-400 hover:text-white">Local Clubs & Map</a>
-                <a href="policies.html" class="text-purple-400 hover:text-white">Welfare & Policies</a>
-                <a href="news.html" class="text-purple-400 hover:text-white">News</a>
-                <a href="member-login.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white">Member Login</a>
-            </nav>
-        </div>
+    <header>
+ <div id="site-header"></div>
     </header>
 
     <!-- Top Hero Section: Purple fading to very light purple on the right -->
@@ -98,6 +79,20 @@
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
         <p>&copy; 2026 RJD Archers. All rights reserved. Built completely free for the club.</p>
     </footer>
+
+<script>
+fetch('header.html')
+    .then(response => {
+        console.log('Status:', response.status);
+        return response.text();
+    })
+    .then(data => {
+        document.getElementById('site-header').innerHTML = data;
+    })
+    .catch(error => {
+        console.error('Header load failed:', error);
+    });
+</script>
 
 </body>
 </html>
