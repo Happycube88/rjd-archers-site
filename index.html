@@ -12,49 +12,51 @@
     <!-- Header / Navigation -->
     <header class="bg-slate-900 text-white shadow-md">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <!-- Club Logo placeholder -->
-                <div class="bg-red-600 text-white font-bold p-2 rounded-full text-xl">RJD</div>
-				<img src="logo.png" alt="RJD Archers Logo" class="h-10 w-auto object-contain"
-                <span class="text-2xl font-bold tracking-wide">RJD Archers</span>
-            </div>
-            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium">
+            
+            <!-- Logo & Brand Name -->
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="images/logo.png" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
+                <span class="text-2xl font-bold tracking-wide group-hover:text-purple-400 transition">RJD Archers</span>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
                 <a href="index.html" class="text-purple-400 hover:text-white">Home</a>
-                <a href="beginners.html" class="hover:text-red-400">Beginner's Courses</a>
-                <a href="tournaments.html" class="hover:text-red-400">Tournaments & Results</a>
-                <a href="location.html" class="hover:text-red-400">Venues & Location</a>
-                <a href="links.html" class="hover:text-red-400">Local Clubs & Map</a>
-		<a href="policies.html" class="hover:text-red-400">Welfare & Policies</a>
-          	<a href="news.html" class="text-red-400">News</a>
-                <a href="member-login.html" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700 text-white">Member Login</a>
+                <a href="beginners.html" class="hover:text-purple-300">Beginner's Courses</a>
+                <a href="tournaments.html" class="hover:text-purple-300">Tournaments & Results</a>
+                <a href="location.html" class="hover:text-purple-300">Venues & Location</a>
+                <a href="links.html" class="hover:text-purple-300">Local Clubs & Map</a>
+                <a href="policies.html" class="hover:text-purple-300">Welfare & Policies</a>
+                <a href="news.html" class="hover:text-purple-300">News</a>
+                <a href="member-login.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white">Member Login</a>
             </nav>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-slate-900 to-slate-800 text-white py-16 px-4">
-        <div class="max-w-4xl mx-auto text-center">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Welcome to RJD Archers</h1>
-            <p class="text-lg text-slate-300">A friendly family club welcoming children over 8 and adults of all skill levels across South Wales.</p>
+    <!-- Top Hero Section: Purple fading to white on the right -->
+    <section class="bg-gradient-to-r from-purple-950 via-purple-800 to-white py-16 px-4 text-slate-900">
+        <div class="max-w-4xl mx-auto text-center md:text-left">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-white drop-shadow-sm">Welcome to RJD Archers</h1>
+            <p class="text-lg text-purple-100 font-medium max-w-2xl">A friendly family club welcoming children over 8 and adults of all skill levels across South Wales.</p>
         </div>
     </section>
 
     <!-- Main Content Grid -->
     <main class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
         
-        <!-- Left 2 Columns: Club Info -->
-        <div class="md:col-span-2 space-y-6 bg-white p-8 rounded-xl shadow-sm border border-slate-100">
-            <h2 class="text-2xl font-bold text-slate-900">About Our Club</h2>
+        <!-- Left 2 Columns: Club Info (Lighter slate container) -->
+        <div class="md:col-span-2 space-y-6 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-2xl font-bold text-purple-950">About Our Club</h2>
             <p class="leading-relaxed text-slate-600">
                 Beginners are welcome to borrow club equipment, and anyone wishing to continue beyond beginner level is supported to buy the correct equipment suited to their own needs. Our coaches are all Archery GB qualified, offer lots of individual guidance, and are DBS checked.
             </p>
             
-            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 text-amber-800 text-sm">
+            <div class="bg-purple-50 border-l-4 border-purple-600 p-4 text-purple-950 text-sm">
                 <p class="font-semibold">Welsh Language Provision</p>
                 <p>Mae hefyd hyfforddwr Cymraeg ar gael os hofech ddysgu yn eich mamiaeth neu hoff iaith. (Training delivery through the medium of Welsh is available upon request).</p>
             </div>
 
-            <h3 class="text-xl font-bold text-slate-900 pt-4">Where & When We Meet</h3>
+            <h3 class="text-xl font-bold text-purple-950 pt-4">Where & When We Meet</h3>
             <ul class="space-y-3 text-slate-600">
                 <li class="flex items-start">
                     <span class="font-semibold text-slate-900 w-32 shrink-0">Summer Season:</span>
@@ -71,21 +73,22 @@
             </div>
         </div>
 
-        <!-- Right Column: Quick Links / Notice Widget -->
+        <!-- Right Column: Quick Links & Lighter Slate Notice Widget -->
         <div class="space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                <h3 class="text-lg font-bold text-slate-900 mb-3">Quick Navigation</h3>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="text-lg font-bold text-purple-950 mb-3">Quick Navigation</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="beginners.html" class="text-red-600 hover:underline">→ Beginner Courses & Dress Code</a></li>
-                    <li><a href="tournaments.html" class="text-red-600 hover:underline">→ Upcoming Tournaments & Fees</a></li>
-                    <li><a href="location.html" class="text-red-600 hover:underline">→ Winter & Summer Venues Map</a></li>
-                    <li><a href="links.html" class="text-red-600 hover:underline">→ Nearby Clubs & Regional Links</a></li>
+                    <li><a href="beginners.html" class="text-purple-700 font-medium hover:underline">→ Beginner Courses & Dress Code</a></li>
+                    <li><a href="tournaments.html" class="text-purple-700 font-medium hover:underline">→ Upcoming Tournaments & Fees</a></li>
+                    <li><a href="location.html" class="text-purple-700 font-medium hover:underline">→ Winter & Summer Venues Map</a></li>
+                    <li><a href="links.html" class="text-purple-700 font-medium hover:underline">→ Nearby Clubs & Regional Links</a></li>
                 </ul>
             </div>
             
-            <div class="bg-red-900 text-white p-6 rounded-xl shadow-sm">
-                <h3 class="text-lg font-bold mb-2">New Season Notice</h3>
-                <p class="text-sm text-red-100">Ensure your Archery GB membership numbers are ready for indoor winter line bookings.</p>
+            <!-- Lighter Slate Gray Notice Widget -->
+            <div class="bg-slate-200 text-slate-900 p-6 rounded-xl shadow-sm border border-slate-300">
+                <h3 class="text-lg font-bold mb-2 text-purple-950">New Season Notice</h3>
+                <p class="text-sm text-slate-700">Ensure your Archery GB membership numbers are ready for indoor winter line bookings.</p>
             </div>
         </div>
 
