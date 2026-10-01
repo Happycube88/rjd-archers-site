@@ -8,22 +8,26 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
-    <!-- Header Navigation -->
-    <header class="bg-slate-900 text-white shadow-md">
+    <!-- Header / Navigation (White to Slate Fade with Purple Brand) -->
+    <header class="bg-gradient-to-r from-white via-slate-200 to-slate-240 text-slate-900 shadow-md border-b border-slate-200">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-red-600 text-white font-bold p-2 rounded-full text-xl">RJD</div>
-                <span class="text-2xl font-bold tracking-wide">RJD Archers</span>
-            </div>
-            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium">
-                <a href="index.html" class="hover:text-red-400">Home</a>
-                <a href="beginners.html" class="hover:text-red-400">Beginner's Courses</a>
-                <a href="tournaments.html" class="text-red-400">Tournaments & Results</a>
-                <a href="location.html" class="hover:text-red-400">Venues & Location</a>
-                <a href="links.html" class="hover:text-red-400">Local Clubs & Map</a>
-<a href="policies.html" class="hover:text-red-400">Welfare & Policies</a>
-          	<a href="news.html" class="text-red-400">News</a>
-                <a href="member-login.html" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700 text-white">Member Login</a>
+            
+            <!-- Logo & Brand Name -->
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
+                <span class="text-2xl font-bold tracking-wide text-purple-900 group-hover:text-purple-700 transition">RJD Archers</span>
+            </a>
+
+            <!-- Navigation Links in Purple -->
+            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
+                <a href="index.html" class="text-purple-700 hover:text-purple-950 font-semibold">Home</a>
+                <a href="beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
+                <a href="tournaments.html" class="text-purple-700 hover:text-purple-950">Tournaments & Results</a>
+                <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
+                <a href="links.html" class="text-purple-700 hover:text-purple-950">Local Clubs & Map</a>
+                <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
+                <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
+                <a href="member-login.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white shadow-sm">Member Login</a>
             </nav>
         </div>
     </header>
