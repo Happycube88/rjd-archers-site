@@ -39,8 +39,8 @@
             <p class="text-slate-300 mt-2">Official updates, seasonal notices, and announcements from the RJD committee.</p>
         </div>
     </section>
-
-    <!-- MAIN CONTENT AREA -->
+    
+    <!-- EMBED CONTAINER -->
     <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8">
         
         <div class="mb-6 text-center">
@@ -48,16 +48,17 @@
             <p class="text-slate-600 text-sm mt-1">Latest announcements, shoot reports, and events straight from the committee.</p>
         </div>
 
-        <!-- EMBED CONTAINER -->
-        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden p-2 sm:p-4 w-full">
-            <div class="w-full overflow-hidden rounded-xl">
+        <!-- EMBED CONTAINER WITH MARGIN CROPPER -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden p-0 w-full">
+            <div class="w-full overflow-hidden relative h-[1200px]">
                 <iframe src="https://docs.google.com/document/d/e/2PACX-1vSYIyuq4Ly5gHuJTw8fouHjAFOo88LEjRlD81l4WBCTNh21HCoO9jiGOwW_vfFPsXLyBLKUuB2wIVoG/pub?embedded=true" 
-                        class="w-full h-[1200px] border-0 scale-90 origin-top">
+                        class="absolute top-0 left-[-60px] w-[calc(100%+120px)] h-[1200px] border-0">
                 </iframe>
             </div>
         </div>
 
     </main>
+
 
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
