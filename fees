@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fees & Membership Costs | RJD Archers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Header / Navigation -->
+    <header class="bg-gradient-to-r from-white via-slate-200 to-slate-240 text-slate-900 shadow-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            
+            <!-- Logo & Brand Name -->
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
+                <span class="text-2xl font-bold tracking-wide text-purple-900 group-hover:text-purple-700 transition">RJD Archers</span>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
+                <a href="index.html" class="text-purple-700 hover:text-purple-950 font-semibold">Home</a>
+                <a href="beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
+                <a href="fees.html" class="text-purple-950 font-bold underline">Fees & Costs</a>
+                <a href="tournaments.html" class="text-purple-700 hover:text-purple-950">Tournaments & Results</a>
+                <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
+                <a href="links.html" class="text-purple-700 hover:text-purple-950">Local Clubs & Map</a>
+                <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
+                <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
+                <a href="member-login.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white shadow-sm">Member Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="bg-slate-800 text-white py-10 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-3xl font-bold">Membership Fees & Session Costs</h1>
+            <p class="text-slate-300 mt-2">Transparent pricing for annual club membership, weekly shoots, and special events.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-12 space-y-8">
+        
+        <!-- Annual Membership Subscriptions Card -->
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
+            <h2 class="text-2xl font-bold text-slate-900">Annual Club Membership Subscriptions</h2>
+            <p class="text-slate-600 leading-relaxed text-sm">
+                Annual membership runs to align with Archery GB affiliation periods and covers club administration, equipment upkeep (bosses, targets, and facility maintenance), and insurance validity.
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600 border border-slate-200 rounded-lg overflow-hidden">
+                    <thead class="bg-slate-100 text-slate-900 font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">Membership Category</th>
+                            <th class="p-3">Eligibility Details</th>
+                            <th class="p-3">Annual Club Fee (GBP)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        <tr>
+                            <td class="p-3 font-medium text-slate-900">Standard Adult Member</td>
+                            <td class="p-3">Full adult club membership (aged 21 and over)</td>
+                            <td class="p-3 font-semibold text-purple-900">£XX.00</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium text-slate-900">Junior Member</td>
+                            <td class="p-3">Young archers aged 8 until their 21st birthday</td>
+                            <td class="p-3 font-semibold text-purple-900">£XX.00</td>
+                        </tr>
+                        <tr>
+                            <td class="p-3 font-medium text-slate-900">Disabled Member</td>
+                            <td class="p-3">Concessionary rate supporting full accessibility and inclusion</td>
+                            <td class="p-3 font-semibold text-purple-900">£XX.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-slate-500 italic">*Note: Archery GB governing body affiliation fees are additional and billed separately upon joining or renewal to ensure compulsory insurance coverage.</p>
+        </div>
+
+        <!-- Weekly Club Nights & Special Shoots Card -->
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
+            <h2 class="text-2xl font-bold text-slate-900">Weekly Club Nights & Special Events</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Club Night Fees -->
+                <div class="border border-slate-200 rounded-lg p-5 bg-slate-50 space-y-2">
+                    <div class="text-purple-800 font-bold text-xs uppercase tracking-wide">Regular Attendance</div>
+                    <h3 class="text-lg font-bold text-slate-900">Club Nights (£2.50 per session)</h3>
+                    <p class="text-sm text-slate-600">
+                        Held twice a week (indoor during winter, outdoor during summer). Members book their line slots online in advance, contributing a flat <strong>£2.50 per player per session</strong> to help cover venue hire.
+                    </p>
+                </div>
+
+                <!-- Festive / Seasonal Shoots -->
+                <div class="border border-purple-200 rounded-lg p-5 bg-purple-50 space-y-2">
+                    <div class="text-purple-800 font-bold text-xs uppercase tracking-wide">Seasonal Fun</div>
+                    <h3 class="text-lg font-bold text-purple-900">Festive Shoots (100% Free!)</h3>
+                    <p class="text-sm text-slate-600">
+                        Our special holiday club nights near <strong>Christmas and Easter</strong> feature fun novelty targets, social gatherings, and friendly club celebrations. These seasonal shoots are <strong>completely free of charge</strong> for all active members.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Competitions Card -->
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-4">
+            <h2 class="text-2xl font-bold text-slate-900">Tournaments & Competitions</h2>
+            <p class="text-slate-600 text-sm leading-relaxed">
+                RJD Archers hosts open competitions and club tournaments 3 to 4 times a year. Unlike regular club nights, <strong>competition fees are chargeable for all entrants</strong> to cover tournament administration, target face wear, and medals/prizes. 
+            </p>
+            <div class="pt-2">
+                <a href="tournaments.html" class="inline-block bg-purple-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm hover:bg-purple-800 transition shadow-sm">
+                    View Tournaments Page & Entry Details →
+                </a>
+            </div>
+        </div>
+
+        <!-- Back to Beginners Navigation -->
+        <div class="bg-slate-800 text-white p-6 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-bold">Looking to start archery from scratch?</h3>
+                <p class="text-slate-300 text-sm">Check out what to expect and our beginner course prerequisites.</p>
+            </div>
+            <a href="beginners.html" class="bg-white text-slate-900 font-semibold px-4 py-2 rounded-lg text-sm hover:bg-slate-100 transition whitespace-nowrap shadow-sm">
+                Go to Beginner's Courses
+            </a>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
+        <p>&copy; 2026 RJD Archers. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
