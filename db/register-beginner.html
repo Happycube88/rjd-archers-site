@@ -30,31 +30,68 @@
         <p id="msg" class="mt-4 text-center text-sm font-medium"></p>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    
+    // Declare 'supabase' ONCE globally here
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        document.getElementById('beginnerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const mobile = document.getElementById('mobile').value;
+    document.getElementById('beginnerForm').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Stop form from doing a traditional page refresh
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const msg = document.getElementById('msg');
+        
+        // Show loading status
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Submitting...";
+        }
+        
+        msg.classList.remove('hidden');
+        msg.textContent = "Sending registration details...";
+        msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-slate-100 text-slate-700 border border-slate-200";
 
-            const { data, error } = await supabase
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const mobile = document.getElementById('mobile').value;
+
+        try {
+            // Use the client variable created above
+            const { data, error } = await supabaseClient
                 .from('members')
-                .insert([{ name, email, mobile, membertype: 'beginner' }]);
+                .insert([{ name: name, email: email, mobile: mobile, membertype: 'beginner' }]);
 
-            const msg = document.getElementById('msg');
             if (error) {
-                msg.textContent = "Error: " + error.message;
-                msg.className = "mt-4 text-center text-sm font-medium text-red-600";
+                console.error("Supabase Error:", error);
+                msg.textContent = "⚠️ Error: " + error.message;
+                msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
+                
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = "Submit Registration";
+                }
             } else {
-                msg.textContent = "Registration successful! We will be in touch soon.";
-                msg.className = "mt-4 text-center text-sm font-medium text-green-600";
+                console.log("Success:", data);
+                msg.textContent = "🎉 Registration successful! We have received your details and will be in touch soon.";
+                msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200 shadow-sm";
+                
                 document.getElementById('beginnerForm').reset();
+                if (submitBtn) submitBtn.style.display = 'none'; // Hide submit button to prevent duplicate entries
             }
-        });
-    </script>
+        } catch (err) {
+            console.error("Script/Network Error:", err);
+            msg.textContent = "⚠️ Unexpected error: " + err.message;
+            msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
+            
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Submit Registration";
+            }
+        }
+    });
+</script>
+
 </body>
 </html>
