@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Profile | RJD Archers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6 font-sans text-slate-800">
+    <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+        <h1 class="text-2xl font-bold text-purple-950 mb-2">My Member Profile</h1>
+        <p class="text-sm text-slate-600 mb-6">Update your contact details below.</p>
+        
+        <form id="profileForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Address Line 1</label>
+                <input type="text" id="address1" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Town / City</label>
+                <input type="text" id="town" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Postcode</label>
+                <input type="text" id="postcode" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700">Mobile Number</label>
+                <input type="text" id="mobile" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+            </div>
+            <div class="flex items-center space-x-2 pt-2">
+                <input type="checkbox" id="flagfor_allowphotos" class="w-4 h-4 text-purple-600 border-slate-300 rounded focus:ring-purple-500">
+                <label for="flagfor_allowphotos" class="text-sm font-medium text-slate-700">Allow photos for club publicity</label>
+            </div>
+            <button type="submit" class="w-full bg-purple-600 text-white py-2.5 rounded font-semibold hover:bg-purple-700 transition shadow">Save Changes</button>
+        </form>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function loadProfile() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                // If testing layout without active login session, you can comment this out
+                return;
+            }
+
+            const { data, error } = await supabase
+                .from('members')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (data) {
+                document.getElementById('address1').value = data.address1 || '';
+                document.getElementById('town').value = data.town || '';
+                document.getElementById('postcode').value = data.postcode || '';
+                document.getElementById('mobile').value = data.mobile || '';
+                document.getElementById('flagfor_allowphotos').checked = data.flagfor_allowphotos || false;
+            }
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                alert('You must be logged in to update your profile.');
+                return;
+            }
+
+            const updates = {
+                address1: document.getElementById('address1').value,
+                town: document.getElementById('town').value,
+                postcode: document.getElementById('postcode').value,
+                mobile: document.getElementById('mobile').value,
+                flagfor_allowphotos: document.getElementById('flagfor_allowphotos').checked
+            };
+
+            const { error } = await supabase
+                .from('members')
+                .update(updates)
+                .eq('id', user.id);
+
+            if (error) alert('Error updating profile: ' + error.message);
+            else alert('Profile updated successfully!');
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>
