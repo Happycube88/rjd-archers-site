@@ -1,159 +1,111 @@
-v1
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>v1. Beginner Registration | RJD Archers</title>
-    <!-- Tailwind CSS -->
+    <title> v2 DB Diagnostic Test | RJD Archers</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS Client v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 p-6 font-sans text-slate-800">
+<body class="bg-slate-100 p-6 font-sans text-slate-800">
     <div class="max-w-xl mx-auto space-y-6">
         
-        <!-- Live Connection & Test Read Box -->
+        <!-- Live Read Test Box -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Database Diagnostic Panel</h2>
-            <div id="connectionStatus" class="p-3 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 mb-3">
-                🔍 Testing database connection...
-            </div>
-            <div id="latestRowBox" class="p-3 rounded text-xs bg-slate-50 text-slate-700 border border-slate-200">
-                📥 Latest Database Entry: <em>Checking...</em>
+            <h2 class="text-lg font-bold text-purple-950 mb-2">1. Database Read Test (On Page Load)</h2>
+            <div id="readStatus" class="p-3 rounded text-sm bg-slate-50 border border-slate-200 font-mono text-xs overflow-x-auto">
+                Connecting and reading database...
             </div>
         </div>
 
-        <!-- Registration Form Card -->
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-            <h1 class="text-2xl font-bold text-purple-950 mb-2">Beginner Course Registration</h1>
-            <p class="text-sm text-slate-600 mb-6">Sign up to join our next beginner coaching block.</p>
-            
-            <form id="beginnerForm" class="space-y-4">
+        <!-- Write Form Box -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-purple-950 mb-2">2. Database Write Test (Form Submit)</h2>
+            <form id="testForm" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Full Name</label>
-                    <input type="text" id="name" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label class="block text-sm font-medium">Test Name</label>
+                    <input type="text" id="name" value="Web Test User" required class="w-full border p-2 rounded mt-1">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Email Address</label>
-                    <input type="email" id="email" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label class="block text-sm font-medium">Test Email</label>
+                    <input type="email" id="email" value="webtest@example.com" required class="w-full border p-2 rounded mt-1">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Mobile Number</label>
-                    <input type="tel" id="mobile" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label class="block text-sm font-medium">Test Mobile</label>
+                    <input type="tel" id="mobile" value="07123456789" required class="w-full border p-2 rounded mt-1">
                 </div>
-                <button type="submit" id="submitBtn" class="w-full bg-purple-600 text-white py-2.5 rounded font-semibold hover:bg-purple-700 transition shadow">
-                    Submit Registration
+                <button type="submit" id="submitBtn" class="w-full bg-purple-600 text-white py-2 rounded font-semibold hover:bg-purple-700">
+                    Test Insert (Write)
                 </button>
             </form>
-
-            <!-- Status & Feedback Box -->
-            <div id="msg" class="hidden mt-6 p-4 rounded-lg text-sm font-medium text-center transition-all"></div>
+            <div id="writeStatus" class="hidden mt-4 p-3 rounded text-sm font-mono text-xs overflow-x-auto"></div>
         </div>
+
     </div>
 
     <script>
         const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iJlcXAiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
 
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const statusBox = document.getElementById('connectionStatus');
-        const latestRowBox = document.getElementById('latestRowBox');
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --- TEST 1: READ BACK THE FIRST/LATEST ROW ---
-        async function fetchLatestEntry() {
+        // --- TEST 1: READ FROM DATABASE ON LOAD ---
+        async function runReadTest() {
+            const readBox = document.getElementById('readStatus');
             try {
-                const { data, error } = await supabase
+                const { data, error, status } = await supabaseClient
                     .from('members')
-                    .select('name, email, created_at')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
+                    .select('*')
+                    .limit(5);
 
                 if (error) {
-                    latestRowBox.className = "p-3 rounded text-xs bg-yellow-50 text-yellow-800 border border-yellow-200";
-                    latestRowBox.innerHTML = `⚠️ <strong>Read Test Blocked:</strong> ${error.message} (Inserts may still work if RLS select is closed).`;
-                } else if (data && data.length > 0) {
-                    latestRowBox.className = "p-3 rounded text-xs bg-green-50 text-green-800 border border-green-200";
-                    latestRowBox.innerHTML = `✅ <strong>Successfully Read DB:</strong> Last entry was <em>${data[0].name}</em> (${data[0].email})`;
+                    readBox.className = "p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
+                    readBox.innerHTML = `<strong>READ FAILED (Status ${status}):</strong><br>` + JSON.stringify(error, null, 2);
                 } else {
-                    latestRowBox.className = "p-3 rounded text-xs bg-blue-50 text-blue-800 border border-blue-200";
-                    latestRowBox.innerHTML = `ℹ️ <strong>Database Connected:</strong> Table is currently empty.`;
+                    readBox.className = "p-3 rounded text-sm bg-green-50 border border-green-200 font-mono text-xs text-green-800";
+                    readBox.innerHTML = `<strong>READ SUCCESS! Found ${data.length} row(s):</strong><br>` + JSON.stringify(data, null, 2);
                 }
             } catch (err) {
-                latestRowBox.className = "p-3 rounded text-xs bg-red-50 text-red-800 border border-red-200";
-                latestRowBox.innerHTML = `❌ <strong>Read Error:</strong> ${err.message}`;
+                readBox.className = "p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
+                readBox.innerHTML = `<strong>NETWORK EXCEPTION ON READ:</strong><br>` + err.message;
             }
         }
 
-        // --- TEST 2: CHECK API ENDPOINT REACHABILITY ---
-        fetch(`${SUPABASE_URL}/rest/v1/`, {
-            headers: { apikey: SUPABASE_ANON_KEY }
-        })
-        .then(res => {
-            statusBox.className = "mb-3 p-3 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200";
-            statusBox.innerHTML = `✅ <strong>API Reachable:</strong> Connected to Supabase endpoint (Status: ${res.status}).`;
-            // Once endpoint is confirmed, run the read-back test
-            fetchLatestEntry();
-        })
-        .catch(err => {
-            statusBox.className = "mb-3 p-3 rounded text-xs font-medium bg-red-50 text-red-700 border border-red-200";
-            statusBox.innerHTML = `❌ <strong>Network Blocked:</strong> Failed to fetch. (${err.message})`;
-            latestRowBox.innerHTML = `❌ Skipped due to network block.`;
-        });
+        runReadTest();
 
-        // Form Submit Handler
-        document.getElementById('beginnerForm').addEventListener('submit', async (e) => {
+        // --- TEST 2: WRITE / INSERT TO DATABASE ON SUBMIT ---
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const msg = document.getElementById('msg');
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Submitting...";
-            msg.classList.remove('hidden');
-            msg.textContent = "Sending your registration details to the database...";
-            msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-slate-100 text-slate-700 border border-slate-200";
+            const writeBox = document.getElementById('writeStatus');
+            writeBox.classList.remove('hidden');
+            writeBox.className = "mt-4 p-3 rounded text-sm bg-slate-50 border border-slate-200 font-mono text-xs text-slate-700";
+            writeBox.textContent = "Attempting to insert row...";
 
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const mobile = document.getElementById('mobile').value;
 
             try {
-                const { data, error } = await supabase
+                const { data, error, status } = await supabaseClient
                     .from('members')
                     .insert([{ 
                         name: name, 
                         email: email, 
                         mobile: mobile, 
                         membertype: 'beginner' 
-                    }]);
+                    }])
+                    .select(); // Request returned data to verify insert
 
                 if (error) {
-                    console.error("Supabase Error Details:", error);
-                    msg.innerHTML = `⚠️ <strong>Database Error:</strong> ${error.message}`;
-                    msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
-                    
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "Submit Registration";
+                    writeBox.className = "mt-4 p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
+                    writeBox.innerHTML = `<strong>WRITE FAILED (Status ${status}):</strong><br>` + JSON.stringify(error, null, 2);
                 } else {
-                    console.log("Success:", data);
-                    msg.innerHTML = "🎉 <strong>Registration Successful!</strong> Thank you. We have received your details and will be in touch soon.";
-                    msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200 shadow-sm";
-                    
-                    document.getElementById('beginnerForm').reset();
-                    submitBtn.style.display = 'none';
-                    
-                    // Refresh the read-back box to show the newly added entry instantly!
-                    fetchLatestEntry();
+                    writeBox.className = "mt-4 p-3 rounded text-sm bg-green-50 border border-green-200 font-mono text-xs text-green-800";
+                    writeBox.innerHTML = `<strong>WRITE SUCCESS! Inserted row:</strong><br>` + JSON.stringify(data, null, 2);
                 }
             } catch (err) {
-                console.error("Fetch Exception:", err);
-                msg.innerHTML = `⚠️ <strong>Network Connection Failed:</strong> ${err.message}`;
-                msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
-                
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Submit Registration";
+                writeBox.className = "mt-4 p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
+                writeBox.innerHTML = `<strong>NETWORK EXCEPTION ON WRITE:</strong><br>` + err.message;
             }
         });
     </script>
