@@ -11,7 +11,7 @@
     <div class="max-w-xl mx-auto space-y-6">
         
         <!-- Version Badge -->
-        <div class="text-xs font-bold text-slate-400 tracking-wider uppercase">v8 - Cloudflare Serverless Backend Routing</div>
+        <div class="text-xs font-bold text-slate-400 tracking-wider uppercase">v9 - Secure Backend Proxy</div>
 
         <!-- Registration Form Card -->
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
@@ -51,7 +51,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = "Submitting...";
             msg.classList.remove('hidden');
-            msg.textContent = "Processing registration via secure server...";
+            msg.textContent = "Processing registration...";
             msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-slate-100 text-slate-700 border border-slate-200";
 
             const name = document.getElementById('name').value;
@@ -59,20 +59,25 @@
             const mobile = document.getElementById('mobile').value;
 
             try {
-                // Post to our own Cloudflare Pages serverless function endpoint
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, mobile })
                 });
 
-                const result = await response.json();
-
-                if (!response.ok || !result.success) {
-                    throw new Error(result.error || 'Server submission failed');
+                const rawText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    throw new Error("Server returned non-JSON response: " + rawText);
                 }
 
-                msg.innerHTML = "🎉 <strong>Registration Successful!</strong> Thank you. We have received your details.";
+                if (!response.ok || !result.success) {
+                    throw new Error(result.error || 'Database insert failed');
+                }
+
+                msg.innerHTML = "🎉 <strong>Registration Successful!</strong> Thank you. Your details have been saved.";
                 msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200 shadow-sm";
                 document.getElementById('beginnerForm').reset();
                 submitBtn.style.display = 'none';
