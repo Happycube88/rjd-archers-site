@@ -9,18 +9,18 @@
 </head>
 <body class="bg-slate-100 p-6 font-sans text-slate-800">
     <div class="max-w-xl mx-auto space-y-6">
-        v3
-        <!-- Live Read Test Box -->
+        v4
+        <!-- Diagnostic Status Box -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 class="text-lg font-bold text-purple-950 mb-2">1. Database Read Test (On Page Load)</h2>
-            <div id="readStatus" class="p-3 rounded text-sm bg-slate-50 border border-slate-200 font-mono text-xs overflow-x-auto">
-                Connecting via Direct REST API...
+            <h2 class="text-lg font-bold text-purple-950 mb-2">Supabase Connection Test</h2>
+            <div id="connectionStatus" class="p-3 rounded text-sm bg-slate-50 border border-slate-200 font-mono text-xs">
+                Testing connection to Supabase table...
             </div>
         </div>
 
-        <!-- Write Form Box -->
+        <!-- Registration Form Box -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 class="text-lg font-bold text-purple-950 mb-2">2. Beginner Course Registration</h2>
+            <h2 class="text-lg font-bold text-purple-950 mb-2">Beginner Course Registration</h2>
             <p class="text-sm text-slate-600 mb-4">Sign up to join our next beginner coaching block.</p>
             
             <form id="beginnerForm" class="space-y-4">
@@ -48,38 +48,40 @@
 
     <script>
         const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24i planas...eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
 
-        // --- DIRECT REST READ TEST ON LOAD ---
-        async function runReadTest() {
-            const readBox = document.getElementById('readStatus');
+        // Clean key string assignment
+        const cleanKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+
+        // --- TEST CONNECTION ON LOAD ---
+        async function testConnection() {
+            const statusBox = document.getElementById('connectionStatus');
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/members?select=*&limit=1`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/members?select=id&limit=1`, {
                     method: 'GET',
                     headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        'apikey': cleanKey,
+                        'Authorization': `Bearer ${cleanKey}`
                     }
                 });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    readBox.className = "p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
-                    readBox.innerHTML = `<strong>READ FAILED (HTTP ${response.status}):</strong><br>` + JSON.stringify(data, null, 2);
+                if (response.ok) {
+                    statusBox.className = "p-3 rounded text-sm bg-green-50 border border-green-200 font-medium text-green-800";
+                    statusBox.innerHTML = "✅ <strong>Supabase Connected Successfully:</strong> Ready for registrations.";
                 } else {
-                    readBox.className = "p-3 rounded text-sm bg-green-50 border border-green-200 font-mono text-xs text-green-800";
-                    readBox.innerHTML = `<strong>✅ READ SUCCESS! Connected to database.</strong><br>Found ${data.length} row(s).`;
+                    const errText = await response.text();
+                    statusBox.className = "p-3 rounded text-sm bg-yellow-50 border border-yellow-200 font-mono text-xs text-yellow-800";
+                    statusBox.innerHTML = `⚠️ <strong>API Responded (HTTP ${response.status}):</strong> ${errText}`;
                 }
             } catch (err) {
-                readBox.className = "p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
-                readBox.innerHTML = `<strong>NETWORK EXCEPTION ON READ:</strong><br>` + err.message;
+                statusBox.className = "p-3 rounded text-sm bg-red-50 border border-red-200 font-mono text-xs text-red-700";
+                statusBox.innerHTML = `❌ <strong>Fetch Blocked:</strong> ${err.message}`;
             }
         }
 
-        runReadTest();
+        testConnection();
 
-        // --- DIRECT REST INSERT ON SUBMIT ---
+        // --- HANDLE FORM SUBMISSION ---
         document.getElementById('beginnerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -89,7 +91,7 @@
             submitBtn.disabled = true;
             submitBtn.textContent = "Submitting...";
             msg.classList.remove('hidden');
-            msg.textContent = "Sending registration details to database...";
+            msg.textContent = "Sending registration details...";
             msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-slate-100 text-slate-700 border border-slate-200";
 
             const name = document.getElementById('name').value;
@@ -100,8 +102,8 @@
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/members`, {
                     method: 'POST',
                     headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': cleanKey,
+                        'Authorization': `Bearer ${cleanKey}`,
                         'Content-Type': 'application/json',
                         'Prefer': 'return=representation'
                     },
@@ -116,21 +118,17 @@
                 const result = await response.json();
 
                 if (!response.ok) {
-                    console.error("Supabase Error:", result);
                     msg.innerHTML = `⚠️ <strong>Database Error:</strong> ${result.message || JSON.stringify(result)}`;
                     msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
                     submitBtn.disabled = false;
                     submitBtn.textContent = "Submit Registration";
                 } else {
-                    console.log("Success:", result);
-                    msg.innerHTML = "🎉 <strong>Registration Successful!</strong> Thank you. We have received your details and will be in touch soon.";
+                    msg.innerHTML = "🎉 <strong>Registration Successful!</strong> Thank you. We have received your details.";
                     msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200 shadow-sm";
-                    
                     document.getElementById('beginnerForm').reset();
                     submitBtn.style.display = 'none';
                 }
             } catch (err) {
-                console.error("Network Exception:", err);
                 msg.innerHTML = `⚠️ <strong>Network Error:</strong> ${err.message}`;
                 msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
                 submitBtn.disabled = false;
