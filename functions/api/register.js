@@ -5,7 +5,7 @@ export async function onRequestPost(context) {
         const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
 
-        // Forward the request from Cloudflare's secure server to Supabase
+        // Execute request securely from Cloudflare's backend server
         const response = await fetch(`${SUPABASE_URL}/rest/v1/members`, {
             method: 'POST',
             headers: {
