@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Committee Directory | RJD Archers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6 font-sans text-slate-800">
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+            <h1 class="text-2xl font-bold text-purple-950 mb-2">Committee Member Portal</h1>
+            <p class="text-sm text-slate-600 mb-6">Secure view for committee members to inspect member details.</p>
+
+            <div id="committeeAuth">
+                <button id="loginBtn" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold">Committee Login</button>
+            </div>
+
+            <div id="directorySection" class="hidden space-y-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200">
+                                <th class="p-3">Name</th>
+                                <th class="p-3">Age / DOB</th>
+                                <th class="p-3">GB Archery No.</th>
+                                <th class="p-3">Contact Number</th>
+                                <th class="p-3">Email</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memberTableBody">
+                            <tr><td colspan="5" class="p-3 text-center text-slate-500">Loading records...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="msg" class="mt-4 text-sm text-center font-medium"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = prompt("Enter Committee Email:");
+            if (email) {
+                await supabaseClient.auth.signInWithOtp({ email });
+                alert("Check your email for the secure login link.");
+            }
+        });
+
+        async function loadDirectory() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('committeeAuth').classList.add('hidden');
+                document.getElementById('directorySection').classList.remove('hidden');
+
+                const { data, error } = await supabaseClient.from('members').select('name, dob, archerygbnum, mobile, email');
+                const tbody = document.getElementById('memberTableBody');
+                
+                if (error) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-red-600">Access Denied: Committee privileges or 2FA required. (${error.message})</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(m => {
+                    const age = m.dob ? Math.floor((new Date() - new Date(m.dob)) / 31557600000) : 'N/A';
+                    return `<tr class="border-b border-slate-100">
+                        <td class="p-3 font-medium">${m.name || ''}</td>
+                        <td class="p-3">${age} (${m.dob || 'Unknown'})</td>
+                        <td class="p-3">${m.archerygbnum || 'Pending'}</td>
+                        <td class="p-3">${m.mobile || ''}</td>
+                        <td class="p-3">${m.email || ''}</td>
+                    </tr>`;
+                }).join('');
+            }
+        }
+        loadDirectory();
+    </script>
+</body>
+</html>
