@@ -4,24 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beginner Registration | RJD Archers</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 p-6 font-sans text-slate-800">
     <div class="max-w-xl mx-auto space-y-6">
-        
-        <!-- Version Badge -->
-        <div class="text-xs font-bold text-slate-400 tracking-wider uppercase">v11 - Native REST API Client</div>
-
-        <!-- Database Diagnostic Panel -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Database Status</h2>
-            <div id="latestRowBox" class="p-3 rounded text-xs bg-slate-50 text-slate-700 border border-slate-200">
-                📥 Latest Database Entry: <em>Checking...</em>
-            </div>
-        </div>
-
-        <!-- Registration Form Card -->
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
             <h1 class="text-2xl font-bold text-purple-950 mb-2">Beginner Course Registration</h1>
             <p class="text-sm text-slate-600 mb-6">Sign up to join our next beginner coaching block.</p>
@@ -39,12 +25,18 @@
                     <label class="block text-sm font-medium text-slate-700">Mobile Number</label>
                     <input type="tel" id="mobile" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Postcode</label>
+                    <input type="text" id="postcode" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">Date of Birth</label>
+                    <input type="date" id="dob" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                </div>
                 <button type="submit" id="submitBtn" class="w-full bg-purple-600 text-white py-2.5 rounded font-semibold hover:bg-purple-700 transition shadow">
                     Submit Registration
                 </button>
             </form>
-
-            <!-- Status & Feedback Box -->
             <div id="msg" class="hidden mt-6 p-4 rounded-lg text-sm font-medium text-center transition-all"></div>
         </div>
     </div>
@@ -53,56 +45,16 @@
         const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
 
-        const latestRowBox = document.getElementById('latestRowBox');
-
-        // Fetch and display the latest row using native REST fetch
-        async function fetchLatestEntry() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/members?select=name,email,membertype&order=name.desc&limit=1`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                    }
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    latestRowBox.className = "p-3 rounded text-xs bg-yellow-50 text-yellow-800 border border-yellow-200";
-                    latestRowBox.innerHTML = `⚠️ <strong>Read Restricted:</strong> ${data.message || JSON.stringify(data)}`;
-                } else if (data && data.length > 0) {
-                    latestRowBox.className = "p-3 rounded text-xs bg-green-50 text-green-800 border border-green-200";
-                    latestRowBox.innerHTML = `✅ <strong>Latest DB Row:</strong> ${data[0].name} (${data[0].email}) - Type: ${data[0].membertype}`;
-                } else {
-                    latestRowBox.className = "p-3 rounded text-xs bg-blue-50 text-blue-800 border border-blue-200";
-                    latestRowBox.innerHTML = `ℹ️ <strong>Database Connected:</strong> Table is currently empty.`;
-                }
-            } catch (err) {
-                latestRowBox.className = "p-3 rounded text-xs bg-red-50 text-red-800 border border-red-200";
-                latestRowBox.innerHTML = `❌ <strong>Read Error:</strong> ${err.message}`;
-            }
-        }
-
-        // Run read test on page load
-        fetchLatestEntry();
-
-        // Form Submit Handler (Insert Data using native REST fetch)
         document.getElementById('beginnerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const submitBtn = document.getElementById('submitBtn');
             const msg = document.getElementById('msg');
             
             submitBtn.disabled = true;
             submitBtn.textContent = "Submitting...";
             msg.classList.remove('hidden');
-            msg.textContent = "Saving your details to the database...";
+            msg.textContent = "Saving details...";
             msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-slate-100 text-slate-700 border border-slate-200";
-
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const mobile = document.getElementById('mobile').value;
 
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/members`, {
@@ -114,33 +66,23 @@
                         'Prefer': 'return=representation'
                     },
                     body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        mobile: mobile,
+                        name: document.getElementById('name').value,
+                        email: document.getElementById('email').value,
+                        mobile: document.getElementById('mobile').value,
+                        postcode: document.getElementById('postcode').value,
+                        dob: document.getElementById('dob').value,
                         membertype: 'beginner'
                     })
                 });
 
                 const result = await response.json();
+                if (!response.ok) throw new Error(result.message || JSON.stringify(result));
 
-                if (!response.ok) {
-                    console.error("Supabase Error:", result);
-                    msg.innerHTML = `⚠️ <strong>Database Error:</strong> ${result.message || JSON.stringify(result)}`;
-                    msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "Submit Registration";
-                } else {
-                    msg.innerHTML = "🎉 <strong>Registration Successful!</strong> Your details have been saved.";
-                    msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200 shadow-sm";
-                    
-                    document.getElementById('beginnerForm').reset();
-                    submitBtn.style.display = 'none';
-                    
-                    // Immediately refresh the display row
-                    fetchLatestEntry();
-                }
+                msg.innerHTML = "🎉 <strong>Registration Successful!</strong> We will be in touch soon.";
+                msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-green-50 text-green-700 border border-green-200 shadow-sm";
+                document.getElementById('beginnerForm').reset();
+                submitBtn.style.display = 'none';
             } catch (err) {
-                console.error("Exception:", err);
                 msg.innerHTML = `⚠️ <strong>Error:</strong> ${err.message}`;
                 msg.className = "mt-6 p-4 rounded-lg text-sm font-medium text-center bg-red-50 text-red-700 border border-red-200";
                 submitBtn.disabled = false;
