@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
-    <!-- Header / Navigation (White to Slate Fade with Purple Brand) -->
+    <!-- Header / Navigation -->
     <header class="bg-gradient-to-r from-white via-slate-200 to-slate-240 text-slate-900 shadow-md border-b border-slate-200">
         <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
             
@@ -20,8 +20,8 @@
 
             <!-- Navigation Links -->
             <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
-               <a href="index.html" class="text-purple-700 hover:text-purple-950 font-semibold">Home</a>
-                <a href="Beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
+                <a href="index.html" class="text-purple-700 hover:text-purple-950 font-semibold">Home</a>
+                <a href="beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
                 <a href="fees.html" class="text-purple-700 hover:text-purple-950">Fees & Costs</a>
                 <a href="tournaments.html" class="text-purple-950 font-bold underline">Tournaments & Results</a>
                 <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
@@ -30,7 +30,7 @@
                 <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
                 <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
                 <a href="contacts.html" class="text-purple-700 hover:text-purple-950">Contact Us</a>
-                <a href="member-login.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white shadow-sm">Member Login</a>
+                <a href="edit-profile.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white shadow-sm">Member Login</a>
             </nav>
         </div>
     </header>
@@ -39,7 +39,7 @@
     <section class="bg-slate-800 text-white py-10 px-4">
         <div class="max-w-4xl mx-auto text-center">
             <h1 class="text-3xl font-bold">Tournaments & Past Results</h1>
-            <p class="text-slate-300 mt-2">Upcoming events, entry forms, rules, and historical results sheets.</p>
+            <p class="text-slate-300 mt-2">Upcoming events, entry forms, rules, external Ianseo listings, and historical results sheets.</p>
         </div>
     </section>
 
@@ -54,87 +54,91 @@
             </p>
         </div>
 
-        <!-- Upcoming Events -->
+        <!-- External Ianseo Tournament Listings Integration -->
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">UK & Regional Tournament Calendar (Ianseo)</h2>
+                    <p class="text-slate-600 text-sm mt-1">Browse live tournament entries, result lists, and target lists directly via Ianseo.</p>
+                </div>
+                <a href="https://www.ianseo.net/TourList.php" target="_blank" rel="noopener noreferrer" class="inline-flex items-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition">
+                    Open Ianseo Full Portal &rarr;
+                </a>
+            </div>
+            
+            <!-- Ianseo Live Embed Widget -->
+            <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-50 mt-4">
+                <iframe src="https://www.ianseo.net/TourList.php" 
+                        class="w-full h-[550px] border-0" 
+                        title="Ianseo Tournament List"></iframe>
+            </div>
+        </div>
+
+        <!-- Upcoming Club Events & Ianseo Links -->
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
-            <h2 class="text-2xl font-bold text-slate-900">Upcoming Tournaments</h2>
+            <h2 class="text-2xl font-bold text-slate-900">Upcoming RJD Archers Events</h2>
             
             <div class="border-b border-slate-100 pb-4 space-y-2">
-                <h3 class="font-bold text-lg text-slate-800">RJD Archers</h3>
+                <h3 class="font-bold text-lg text-slate-800">RJD Archers Club Tournament</h3>
                 <p class="text-sm text-slate-500">Date: 28th January 2027</p>
                 <div class="flex gap-2 pt-2">
                     <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-semibold">Entry Form Available</span>
                 </div>
             </div>
             <div class="border-b border-slate-100 pb-4 space-y-2">
-                <h3 class="font-bold text-lg text-slate-800">RJD Archers</h3>
+                <h3 class="font-bold text-lg text-slate-800">RJD Archers Winter Portsmouth (UKRS)</h3>
                 <p class="text-sm text-slate-500">Date: 28th February 2027</p>
                 <div class="flex gap-2 pt-2">
                     <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-semibold">Entry Form Available</span>
                 </div>
             </div>
-            <div class="border-b border-slate-100 pb-4 space-y-2">
-                <h3 class="font-bold text-lg text-slate-800">RJD Archers</h3>
-                <p class="text-sm text-slate-500">Date: 4th April 2027</p>
-                <div class="flex gap-2 pt-2">
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-semibold">Entry Form Available</span>
+        </div>
+
+        <!-- Tournament Entry Forms Download Section -->
+        <section class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-purple-900">Download Tournament Entry Forms</h2>
+                <p class="text-slate-600 text-sm mt-1">Select an entry form below to download, fill it out, and return it to us.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Entry Form GAA WA18 2026 -->
+                <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
+                    <div>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
+                        <h3 class="font-bold text-slate-800 text-base mt-2">GAA WA18 2026</h3>
+                        <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
+                    </div>
+                    <a href="downloads/Entry form GAA WA18 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
+                        Download Form
+                    </a>
+                </div>
+
+                <!-- Entry Form RJD Portsmouth 2026 -->
+                <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
+                    <div>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
+                        <h3 class="font-bold text-slate-800 text-base mt-2">RJD Portsmouth 2026</h3>
+                        <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
+                    </div>
+                    <a href="downloads/Entry form RJD Portsmouth 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
+                        Download Form
+                    </a>
+                </div>
+
+                <!-- Entry Form RJD Worcester 2026 -->
+                <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
+                    <div>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
+                        <h3 class="font-bold text-slate-800 text-base mt-2">RJD Worcester 2026</h3>
+                        <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
+                    </div>
+                    <a href="downloads/Entry form RJD Worcester 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
+                        Download Form
+                    </a>
                 </div>
             </div>
-<!-- Tournament Entry Forms Download Section -->
-<section class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200 my-8">
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-purple-900">Download Tournament Entry Forms</h2>
-        <p class="text-slate-600 text-sm mt-1">Select an entry form below to download, fill it out, and return it to us.</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Entry Form GAA WA18 2026 -->
-        <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
-            <div>
-                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
-                <h3 class="font-bold text-slate-800 text-base mt-2">GAA WA18 2026</h3>
-                <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
-            </div>
-            <a href="downloads/Entry form GAA WA18 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Download Form
-            </a>
-        </div>
-
-        <!-- Entry Form RJD Portsmouth 2026 -->
-        <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
-            <div>
-                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
-                <h3 class="font-bold text-slate-800 text-base mt-2">RJD Portsmouth 2026</h3>
-                <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
-            </div>
-            <a href="downloads/Entry form RJD Portsmouth 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Download Form
-            </a>
-        </div>
-
-        <!-- Entry Form RJD Worcester 2026 -->
-        <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
-            <div>
-                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
-                <h3 class="font-bold text-slate-800 text-base mt-2">RJD Worcester 2026</h3>
-                <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
-            </div>
-            <a href="downloads/Entry form RJD Worcester 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Download Form
-            </a>
-        </div>
-    </div>
-</section>
-            <div class="space-y-2">
-                <h3 class="font-bold text-lg text-slate-800">RJD Archers Indoor Portsmouth Championship (UKRS)</h3>
-                <p class="text-sm text-slate-500">Date: January 31st</p>
-                <div class="flex gap-2 pt-2">
-                    <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded font-semibold">Opening Soon</span>
-                </div>
-            </div>
-        </div>
+        </section>
 
         <!-- Past Results Archive -->
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
