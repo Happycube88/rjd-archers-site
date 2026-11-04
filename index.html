@@ -6,6 +6,9 @@
     <title>RJD Archers | Welcome</title>
     <!-- Tailwind CSS CDN for rapid free styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="/auth-status.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
@@ -34,6 +37,8 @@
                 <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
                 <a href="contacts.html" class="text-purple-700 hover:text-purple-950">Contact Us</a>
                 <a href="member-login.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white shadow-sm">Member Login</a>
+                  <span id="authStatus"></span>
+
             </nav>
         </div>
     </header>
