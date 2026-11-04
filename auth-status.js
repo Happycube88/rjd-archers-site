@@ -1,6 +1,7 @@
 // auth-status.js - shows "Signed in as ... | Sign out" (or a Member Login link) in the page header.
-// Use: put <span id="authStatus"></span> in the nav, then load this file after the supabase-js script.
+// Use: put <span id="authStatus"></span> in the nav, then load this file after the supabase-js script (head or end of body).
 (function () {
+  function init() {
   var SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
   var el = document.getElementById('authStatus');
@@ -30,4 +31,8 @@
 
   sb.auth.getSession().then(function (r) { show(r.data.session); });
   sb.auth.onAuthStateChange(function (_e, session) { show(session); });
+  }
+  // wait for the page to finish loading, so the nav's <span id="authStatus"> exists
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
