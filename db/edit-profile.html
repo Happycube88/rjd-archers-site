@@ -44,3 +44,78 @@
                     </div>
                     <button type="submit" class="w-full bg-green-600 text-white py-2.5 rounded font-semibold hover:bg-green-700">Save Changes (Requires 2FA)</button>
                 </form>
+            </div>
+            <div id="msg" class="mt-4 text-sm text-center font-medium"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function checkSession() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('editSection').classList.remove('hidden');
+                
+                // Check 2FA assurance level (aal2)
+                const aal = session.user.app_metadata?.aal || 'aal1';
+                const mfaBadge = document.getElementById('mfaBadge');
+                if (aal === 'aal2') {
+                    mfaBadge.className = "p-3 rounded text-xs bg-green-50 text-green-800 border border-green-200 mb-4";
+                    mfaBadge.innerHTML = "✅ <strong>2FA Verified (AAL2):</strong> You have full permission to update your data.";
+                } else {
+                    mfaBadge.className = "p-3 rounded text-xs bg-red-50 text-red-800 border border-red-200 mb-4";
+                    mfaBadge.innerHTML = "⚠️ <strong>2FA Required:</strong> Please set up/verify your Authenticator app via Supabase Auth to enable saving changes.";
+                }
+
+                // Load existing profile data
+                const { data } = await supabaseClient.from('members').select('*').eq('auth_id', session.user.id).single();
+                if (data) {
+                    document.getElementById('editName').value = data.name || '';
+                    document.getElementById('editMobile').value = data.mobile || '';
+                    document.getElementById('editPostcode').value = data.postcode || '';
+                }
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const { error } = await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
+            const msg = document.getElementById('msg');
+            if (error) {
+                msg.textContent = error.message;
+                msg.className = "text-red-600 text-center";
+            } else {
+                msg.textContent = "Check your email for the login link!";
+                msg.className = "text-green-600 text-center";
+            }
+        });
+
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            const { error } = await supabaseClient.from('members').update({
+                name: document.getElementById('editName').value,
+                mobile: document.getElementById('editMobile').value,
+                postcode: document.getElementById('editPostcode').value
+            }).eq('auth_id', session.user.id);
+
+            const msg = document.getElementById('msg');
+            if (error) {
+                msg.innerHTML = `Update failed (Ensure 2FA / AAL2 is active): ${error.message}`;
+                msg.className = "text-red-600 text-center";
+            } else {
+                msg.innerHTML = "Profile successfully updated!";
+                msg.className = "text-green-600 text-center";
+            }
+        });
+
+        checkSession();
+    </script>
+</body>
+</html>
