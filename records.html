@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Records | RJD Archers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Header / Navigation (same as other pages) -->
+    <header class="bg-gradient-to-r from-white via-slate-200 to-slate-300 text-slate-900 shadow-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
+                <span class="text-2xl font-bold tracking-wide text-purple-900 group-hover:text-purple-700 transition">RJD Archers</span>
+            </a>
+            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
+                <a href="index.html" class="text-purple-700 hover:text-purple-950">Home</a>
+                <a href="Beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
+                <a href="fees.html" class="text-purple-700 hover:text-purple-950">Fees & Costs</a>
+                <a href="tournaments.html" class="text-purple-700 hover:text-purple-950">Tournaments & Results</a>
+                <a href="records.html" class="text-purple-950 font-bold underline">Club Records</a>
+                <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
+                <a href="links.html" class="text-purple-700 hover:text-purple-950">Local Clubs & Map</a>
+                <a href="calendar.html" class="text-purple-700 hover:text-purple-950">Calendar</a>
+                <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
+                <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
+                <a href="contacts.html" class="text-purple-700 hover:text-purple-950">Contact Us</a>
+                <a href="db/edit-profile.html" class="bg-purple-600 px-3 py-1.5 rounded hover:bg-purple-700 text-white shadow-sm">Member Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="bg-slate-800 text-white py-10 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-3xl font-bold">RJD Archers Club Records</h1>
+            <p class="text-slate-300 mt-2">Search by bow type, indoor / outdoor, round and class.</p>
+        </div>
+    </section>
+
+    <main class="max-w-6xl mx-auto px-4 py-10 space-y-8">
+
+        <!-- Sign in bar: only needed to add / edit -->
+        <div class="flex justify-end items-center gap-3 text-sm" id="authBar"></div>
+
+        <div id="mfaNote" class="hidden p-3 rounded text-sm bg-yellow-50 text-yellow-800 border border-yellow-200">
+            Editing needs 2FA for this sign-in.
+            <a class="underline font-semibold" href="/db/security.html?next=/records.html">Set up or enter your 2FA code</a>
+        </div>
+
+        <!-- Search filters -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <select id="fEnv" class="border border-slate-300 rounded p-2 text-sm">
+                    <option value="">Indoor &amp; Outdoor</option>
+                    <option value="indoor">Indoor</option>
+                    <option value="outdoor">Outdoor</option>
+                </select>
+                <select id="fBow" class="border border-slate-300 rounded p-2 text-sm"><option value="">All bow types</option></select>
+                <select id="fRound" class="border border-slate-300 rounded p-2 text-sm"><option value="">All rounds</option></select>
+                <select id="fClass" class="border border-slate-300 rounded p-2 text-sm"><option value="">All classes</option></select>
+            </div>
+            <div class="mt-3 flex justify-between items-center text-sm text-slate-500">
+                <span id="count"></span>
+                <button id="resetBtn" class="text-purple-700 hover:text-purple-950 underline">Clear filters</button>
+            </div>
+        </div>
+
+        <!-- Records table -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Round</th>
+                        <th class="p-3">Bow</th>
+                        <th class="p-3">Class</th>
+                        <th class="p-3">Score</th>
+                        <th class="p-3">Archer</th>
+                        <th class="p-3">Date</th>
+                        <th class="p-3">Venue</th>
+                        <th class="p-3">In/Out</th>
+                        <th class="p-3 committee-only hidden"></th>
+                    </tr>
+                </thead>
+                <tbody id="rows"><tr><td colspan="9" class="p-4 text-center text-slate-500">Loading records...</td></tr></tbody>
+            </table>
+        </div>
+
+        <!-- Committee only: add / edit -->
+        <div id="editBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200">
+            <h2 id="formTitle" class="text-xl font-bold text-purple-950 mb-4">Add a record (record keeper only)</h2>
+            <form id="recForm" class="space-y-4">
+                <input type="hidden" name="id">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <select name="environment" class="border border-slate-300 rounded p-2 text-sm">
+                        <option value="indoor">Indoor</option>
+                        <option value="outdoor">Outdoor</option>
+                    </select>
+                    <input name="round" list="dlRound" placeholder="Round (e.g. Worcester)" required class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="bow_style" list="dlBow" placeholder="Bow type" required class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="class" list="dlClass" placeholder="Class (e.g. Lady Master 50+)" required class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="score" type="number" min="0" placeholder="Score" required class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="archer_name" placeholder="Archer" required class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="shot_date" type="date" class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="venue" placeholder="Venue / event" class="border border-slate-300 rounded p-2 text-sm">
+                </div>
+                <datalist id="dlRound"></datalist><datalist id="dlBow"></datalist><datalist id="dlClass"></datalist>
+                <div class="flex gap-3">
+                    <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold text-sm">Save record</button>
+                    <button type="button" id="cancelEdit" class="hidden text-slate-600 underline text-sm">Cancel edit</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Signed-in members: 252 progress -->
+        <div id="p252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
+            <h2 class="text-xl font-bold text-slate-900">My 252 Progress</h2>
+            <form id="p252Form" class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                    <input name="shoot_date" type="date" required class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="round" placeholder="Round" class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="bow_style" placeholder="Bow type" class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="score" type="number" min="0" placeholder="Score" class="border border-slate-300 rounded p-2 text-sm">
+                    <input name="stage" placeholder="Stage / award" class="border border-slate-300 rounded p-2 text-sm">
+                </div>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold text-sm">Add entry</button>
+            </form>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Date</th><th class="p-3">Round</th><th class="p-3">Bow</th>
+                        <th class="p-3">Score</th><th class="p-3">Stage</th><th class="p-3">Verified</th>
+                    </tr></thead>
+                    <tbody id="p252Rows"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="msg" class="text-sm text-center font-medium"></div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
+        <p>&copy; 2026 RJD Archers. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const $ = id => document.getElementById(id);
+        let all = [], isKeeper = false, has2fa = false, me = null;
+
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const fmtDate = r => r.shot_date ? new Date(r.shot_date).toLocaleDateString('en-GB') : (r.date_text || '');
+        const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+
+        /* ---------- Public: load + filter ---------- */
+        async function loadRecords() {
+            const { data, error } = await sb.from('records').select('*')
+                .order('round').order('bow_style').order('class').limit(5000);
+            if (error) { $('rows').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-600">Could not load records (${esc(error.message)})</td></tr>`; return; }
+            all = data;
+            fillSelect('fBow', 'bow_style', 'dlBow');
+            fillSelect('fRound', 'round', 'dlRound');
+            fillSelect('fClass', 'class', 'dlClass');
+            render();
+        }
+        function fillSelect(id, key, listId) {
+            const sel = $(id), cur = sel.value, first = sel.options[0].outerHTML;
+            const vals = [...new Set(all.map(r => r[key]).filter(Boolean))].sort();
+            sel.innerHTML = first + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+            sel.value = cur;
+            $(listId).innerHTML = vals.map(v => `<option value="${esc(v)}">`).join('');
+        }
+        function render() {
+            const f = { environment: $('fEnv').value, bow_style: $('fBow').value, round: $('fRound').value, class: $('fClass').value };
+            const rows = all.filter(r => Object.entries(f).every(([k, v]) => !v || r[k] === v));
+            $('count').textContent = rows.length + ' record' + (rows.length === 1 ? '' : 's');
+            if (!rows.length) { $('rows').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-500">No records match.</td></tr>`; return; }
+            $('rows').innerHTML = rows.map(r => `<tr class="border-b border-slate-100">
+                <td class="p-3">${esc(r.round)}</td>
+                <td class="p-3">${esc(r.bow_style)}</td>
+                <td class="p-3">${esc(r.class)}</td>
+                <td class="p-3 font-bold text-purple-900">${esc(r.score)}</td>
+                <td class="p-3 font-medium">${esc(r.archer_name)}</td>
+                <td class="p-3">${esc(fmtDate(r))}</td>
+                <td class="p-3">${esc(r.venue)}</td>
+                <td class="p-3 capitalize">${esc(r.environment)}</td>
+                ${isKeeper ? `<td class="p-3 whitespace-nowrap">
+                    <button data-edit="${r.id}" class="text-purple-700 underline text-xs mr-2">Edit</button>
+                    <button data-del="${r.id}" class="text-red-600 underline text-xs">Delete</button></td>` : ''}
+            </tr>`).join('');
+        }
+        ['fEnv','fBow','fRound','fClass'].forEach(id => $(id).addEventListener('input', render));
+        $('resetBtn').addEventListener('click', () => { ['fEnv','fBow','fRound','fClass'].forEach(id => $(id).value = ''); render(); });
+
+        /* ---------- Sign in (only needed to add / edit) ---------- */
+        async function refreshAuth() {
+            const { data: { session } } = await sb.auth.getSession();
+            const bar = $('authBar');
+            isKeeper = false; has2fa = false; me = null;
+            if (!session) {
+                bar.innerHTML = `<button id="loginBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold">Member / Committee Login</button>`;
+                $('loginBtn').onclick = async () => {
+                    const email = prompt('Enter your club email address:');
+                    if (!email) return;
+                    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href.split('#')[0] } });
+                    say(error ? error.message : 'Check your email for the secure login link.', !!error);
+                };
+            } else {
+                bar.innerHTML = `<span class="text-slate-500">${esc(session.user.email)}</span>
+                    <button id="logoutBtn" class="text-purple-700 underline">Sign out</button>`;
+                $('logoutBtn').onclick = async () => { await sb.auth.signOut(); refreshAuth(); };
+                const { data: c } = await sb.rpc('is_recordkeeper');
+                isKeeper = c === true;
+                const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+                has2fa = !!a && a.currentLevel === 'aal2';
+                const { data: m } = await sb.from('members').select('id,name').eq('auth_id', session.user.id).maybeSingle();
+                me = m;
+            }
+            document.querySelectorAll('.committee-only').forEach(el => el.classList.toggle('hidden', !isKeeper));
+            $('editBox').classList.toggle('hidden', !isKeeper);
+            $('p252Box').classList.toggle('hidden', !me);
+            $('mfaNote').classList.toggle('hidden', !((isKeeper || me) && !has2fa));
+            render();
+            if (me) load252();
+        }
+
+        /* ---------- Committee: add / edit / delete ---------- */
+        $('recForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const o = Object.fromEntries(new FormData(e.target));
+            const id = o.id; delete o.id;
+            o.score = +o.score;
+            o.shot_date = o.shot_date || null;
+            o.date_text = o.shot_date ? null : (o.date_text || null);
+            const q = id ? sb.from('records').update(o).eq('id', id) : sb.from('records').insert(o);
+            const { error } = await q;
+            if (error) return say('Save failed: ' + error.message, true);
+            say(id ? 'Record updated.' : 'Record added.');
+            resetForm(); loadRecords();
+        });
+        function resetForm() {
+            $('recForm').reset(); $('recForm').elements.id.value = '';
+            $('formTitle').textContent = 'Add a record (record keeper only)';
+            $('cancelEdit').classList.add('hidden');
+        }
+        $('cancelEdit').addEventListener('click', resetForm);
+        $('rows').addEventListener('click', async e => {
+            const eid = e.target.dataset.edit, did = e.target.dataset.del;
+            if (eid) {
+                const r = all.find(x => x.id == eid), f = $('recForm').elements;
+                ['id','environment','round','bow_style','class','score','archer_name','shot_date','venue'].forEach(k => f[k].value = r[k] ?? '');
+                $('formTitle').textContent = 'Edit record';
+                $('cancelEdit').classList.remove('hidden');
+                $('editBox').scrollIntoView({ behavior: 'smooth' });
+            }
+            if (did && confirm('Delete this record?')) {
+                const { error } = await sb.from('records').delete().eq('id', did);
+                if (error) return say('Delete failed: ' + error.message, true);
+                say('Record deleted.'); loadRecords();
+            }
+        });
+
+        /* ---------- Members: 252 progress ---------- */
+        async function load252() {
+            const { data, error } = await sb.from('member_252_progress').select('*')
+                .eq('member_id', me.id).order('shoot_date', { ascending: false });
+            if (error) return say(error.message, true);
+            $('p252Rows').innerHTML = (data || []).map(r => `<tr class="border-b border-slate-100">
+                <td class="p-3">${esc(new Date(r.shoot_date).toLocaleDateString('en-GB'))}</td>
+                <td class="p-3">${esc(r.round)}</td><td class="p-3">${esc(r.bow_style)}</td>
+                <td class="p-3">${esc(r.score)}</td><td class="p-3">${esc(r.stage)}</td>
+                <td class="p-3">${r.verified ? '✅' : 'Pending'}</td></tr>`).join('')
+                || `<tr><td colspan="6" class="p-3 text-center text-slate-500">No entries yet.</td></tr>`;
+        }
+        $('p252Form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const o = Object.fromEntries(new FormData(e.target));
+            o.member_id = me.id; o.score = o.score ? +o.score : null;
+            const { error } = await sb.from('member_252_progress').insert(o);
+            if (error) return say('Could not save: ' + error.message, true);
+            e.target.reset(); load252();
+        });
+
+        sb.auth.onAuthStateChange(() => refreshAuth());
+        loadRecords(); refreshAuth();
+    </script>
+</body>
+</html>

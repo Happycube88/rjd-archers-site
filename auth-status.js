@@ -8,7 +8,7 @@
   if (!el || !window.supabase) return;
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);   // shares the saved login on this site
 
-  function show(session) {
+  function show(session, level) {
     el.textContent = '';
     if (!session) {
       var a = document.createElement('a');
@@ -21,16 +21,37 @@
     var who = document.createElement('span');
     who.textContent = 'Signed in: ' + session.user.email + ' ';
     who.className = 'text-xs text-green-700 font-semibold';
+    el.appendChild(who);
+    if (level === 'aal2') {
+      var ok = document.createElement('span');
+      ok.textContent = '2FA \u2713 ';
+      ok.className = 'text-xs text-green-700 font-semibold';
+      el.appendChild(ok);
+    } else if (level === 'aal1') {
+      var v = document.createElement('a');
+      v.href = '/db/security.html?next=' + encodeURIComponent(location.pathname);
+      v.textContent = 'Verify 2FA ';
+      v.className = 'text-xs text-purple-700 underline';
+      el.appendChild(v);
+    }
     var out = document.createElement('button');
     out.textContent = 'Sign out';
     out.className = 'ml-2 bg-slate-700 px-3 py-1.5 rounded hover:bg-slate-900 text-white text-xs';
     out.onclick = function () { sb.auth.signOut().then(function () { location.reload(); }); };
-    el.appendChild(who);
     el.appendChild(out);
   }
 
-  sb.auth.getSession().then(function (r) { show(r.data.session); });
-  sb.auth.onAuthStateChange(function (_e, session) { show(session); });
+  function refresh(session) {
+    show(session, null);
+    if (!session) return;
+    sb.auth.mfa.getAuthenticatorAssuranceLevel().then(function (r) {
+      if (r && r.data) show(session, r.data.currentLevel);
+    });
+  }
+
+  sb.auth.getSession().then(function (r) { refresh(r.data.session); });
+  // never call Supabase directly inside this callback (can deadlock): defer it
+  sb.auth.onAuthStateChange(function (_e, session) { setTimeout(function () { refresh(session); }, 0); });
   }
   // wait for the page to finish loading, so the nav's <span id="authStatus"> exists
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
