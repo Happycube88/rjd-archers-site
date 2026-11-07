@@ -61,14 +61,15 @@
                 document.getElementById('editSection').classList.remove('hidden');
                 
                 // Check 2FA assurance level (aal2)
-                const aal = session.user.app_metadata?.aal || 'aal1';
+                const { data: aalData } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+                const aal = aalData ? aalData.currentLevel : 'aal1';
                 const mfaBadge = document.getElementById('mfaBadge');
                 if (aal === 'aal2') {
                     mfaBadge.className = "p-3 rounded text-xs bg-green-50 text-green-800 border border-green-200 mb-4";
                     mfaBadge.innerHTML = "✅ <strong>2FA Verified (AAL2):</strong> You have full permission to update your data.";
                 } else {
                     mfaBadge.className = "p-3 rounded text-xs bg-red-50 text-red-800 border border-red-200 mb-4";
-                    mfaBadge.innerHTML = "⚠️ <strong>2FA Required:</strong> Please set up/verify your Authenticator app via Supabase Auth to enable saving changes.";
+                    mfaBadge.innerHTML = "⚠️ <strong>2FA needed to save changes.</strong> <a class='underline font-semibold' href='/db/security.html?next=/db/edit-profile.html'>Set up or enter your 2FA code</a>";
                 }
 
                 // Load existing profile data
@@ -99,15 +100,18 @@
             e.preventDefault();
             const { data: { session } } = await supabaseClient.auth.getSession();
             
-            const { error } = await supabaseClient.from('members').update({
+            const { data: updated, error } = await supabaseClient.from('members').update({
                 name: document.getElementById('editName').value,
                 mobile: document.getElementById('editMobile').value,
                 postcode: document.getElementById('editPostcode').value
-            }).eq('auth_id', session.user.id);
+            }).eq('auth_id', session.user.id).select('id');
 
             const msg = document.getElementById('msg');
             if (error) {
-                msg.innerHTML = `Update failed (Ensure 2FA / AAL2 is active): ${error.message}`;
+                msg.textContent = 'Update failed: ' + error.message;
+                msg.className = "text-red-600 text-center";
+            } else if (!updated || updated.length === 0) {
+                msg.innerHTML = "Nothing was saved. Either your 2FA code has not been entered for this sign-in (<a class='underline' href='/db/security.html?next=/db/edit-profile.html'>do it here</a>), or your login is not linked to a member record yet.";
                 msg.className = "text-red-600 text-center";
             } else {
                 msg.innerHTML = "Profile successfully updated!";

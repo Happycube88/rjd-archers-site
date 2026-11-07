@@ -10,26 +10,119 @@
     <div class="max-w-xl mx-auto space-y-6">
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
             <h1 class="text-2xl font-bold text-purple-950 mb-2">Beginner Course Registration</h1>
-            <p class="text-sm text-slate-600 mb-6">Sign up to join our next beginner coaching block.</p>
+            <p class="text-sm text-slate-600 mb-6">Register your interest in our next beginner coaching block. We will contact you with dates and availability.</p>
 
             <form id="beginnerForm" class="space-y-4" novalidate>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Full Name</label>
-                    <input type="text" id="name" required autocomplete="name" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label for="name" class="block text-sm font-medium text-slate-700">Full Name</label>
+                    <input type="text" id="name" required maxlength="100" autocomplete="name" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Email Address</label>
-                    <input type="email" id="email" required autocomplete="email" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label for="email" class="block text-sm font-medium text-slate-700">Email Address</label>
+                    <input type="email" id="email" required maxlength="254" autocomplete="email" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Mobile Number</label>
-                    <input type="tel" id="mobile" required autocomplete="tel" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label for="mobile" class="block text-sm font-medium text-slate-700">Mobile Number</label>
+                    <input type="tel" id="mobile" required maxlength="30" autocomplete="tel" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Postcode</label>
-                    <input type="text" id="postcode" required autocomplete="postal-code" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    <label for="postcode" class="block text-sm font-medium text-slate-700">Postcode</label>
+                    <input type="text" id="postcode" required maxlength="12" autocomplete="postal-code" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Date of Birth</label>
+                    <label for="dob" class="block text-sm font-medium text-slate-700">Date of Birth</label>
                     <input type="date" id="dob" required class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
                 </div>
+
+                <!-- Shown only when the date of birth makes the archer under 18 -->
+                <div id="guardianBox" class="hidden space-y-4 p-4 rounded-lg bg-purple-50 border border-purple-200">
+                    <p class="text-sm text-purple-900 font-semibold">Under 18? A parent or guardian must be named.</p>
+                    <div>
+                        <label for="guardian_name" class="block text-sm font-medium text-slate-700">Parent / guardian full name</label>
+                        <input type="text" id="guardian_name" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="guardian_email" class="block text-sm font-medium text-slate-700">Parent / guardian email</label>
+                        <input type="email" id="guardian_email" maxlength="254" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="guardian_phone" class="block text-sm font-medium text-slate-700">Parent / guardian phone</label>
+                        <input type="tel" id="guardian_phone" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Spam trap: real people never see or fill this -->
+                <div style="position:absolute;left:-9999px" aria-hidden="true">
+                    <label for="website">Leave this empty</label>
+                    <input type="text" id="website" tabindex="-1" autocomplete="off">
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full bg-purple-600 text-white py-2.5 rounded font-semibold hover:bg-purple-700">Register my interest</button>
+                <p class="text-xs text-slate-500">We use these details only to contact you about the beginner course. They are not shared.</p>
+            </form>
+            <div id="msg" class="mt-4 text-sm text-center font-medium" role="status"></div>
+        </div>
+        <p class="text-center text-sm"><a href="/index.html" class="text-purple-700 underline">Back to the club site</a></p>
+    </div>
+
+    <script>
+        const $ = id => document.getElementById(id);
+
+        function ageFrom(dobStr) {
+            const d = new Date(dobStr);
+            if (isNaN(d)) return null;
+            const t = new Date();
+            let a = t.getFullYear() - d.getFullYear();
+            const m = t.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
+            return a;
+        }
+        function say(text, bad) {
+            $('msg').textContent = text;
+            $('msg').className = 'mt-4 text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700');
+        }
+
+        $('dob').addEventListener('input', () => {
+            const a = ageFrom($('dob').value);
+            $('guardianBox').classList.toggle('hidden', !(a !== null && a < 18));
+        });
+
+        $('beginnerForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            say('');
+            const body = {
+                name: $('name').value, email: $('email').value, mobile: $('mobile').value,
+                postcode: $('postcode').value, dob: $('dob').value,
+                guardian_name: $('guardian_name').value, guardian_email: $('guardian_email').value,
+                guardian_phone: $('guardian_phone').value, website: $('website').value
+            };
+            if (!body.name.trim() || !body.email.trim() || !body.mobile.trim() || !body.postcode.trim() || !body.dob) {
+                return say('Please fill in every box above.', true);
+            }
+            const age = ageFrom(body.dob);
+            if (age === null || age < 0 || age > 120) return say('Please check the date of birth.', true);
+            if (age < 8) return say('Sorry, we welcome children from 8 years old.', true);
+            if (age < 18 && (!body.guardian_name.trim() || !(body.guardian_email.trim() || body.guardian_phone.trim()))) {
+                return say('Please give a parent or guardian name and an email or phone number.', true);
+            }
+            $('submitBtn').disabled = true;
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                const out = await res.json().catch(() => ({}));
+                if (res.ok && out.success) {
+                    $('beginnerForm').reset();
+                    $('guardianBox').classList.add('hidden');
+                    say('Thank you! We have your details and will be in touch about the next beginner course.');
+                } else {
+                    say(out.error || 'Sorry, something went wrong. Please try again or contact us.', true);
+                }
+            } catch (err) {
+                say('Could not reach the server. Please try again later.', true);
+            }
+            $('submitBtn').disabled = false;
+        });
+    </script>
+</body>
+</html>

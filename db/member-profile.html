@@ -38,7 +38,7 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://onepmhddrqmvhyehagkth.supabase.co';
+        const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -52,7 +52,7 @@
             const { data, error } = await supabase
                 .from('members')
                 .select('*')
-                .eq('id', user.id)
+                .eq('auth_id', user.id)
                 .single();
 
             if (data) {
@@ -83,7 +83,7 @@
             const { error } = await supabase
                 .from('members')
                 .update(updates)
-                .eq('id', user.id);
+                .eq('auth_id', user.id);
 
             if (error) alert('Error updating profile: ' + error.message);
             else alert('Profile updated successfully!');

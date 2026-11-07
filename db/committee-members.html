@@ -47,7 +47,7 @@
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const email = prompt("Enter Committee Email:");
             if (email) {
-                await supabaseClient.auth.signInWithOtp({ email });
+                await supabaseClient.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + window.location.pathname } });
                 alert("Check your email for the secure login link.");
             }
         });
