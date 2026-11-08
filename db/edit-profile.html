@@ -42,8 +42,25 @@
                         <label class="block text-sm font-medium text-slate-700">Postcode</label>
                         <input type="text" id="editPostcode" class="w-full border border-slate-300 p-2 rounded mt-1">
                     </div>
+                    <div id="nokBox" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Next of kin name</label>
+                            <input type="text" id="editNok" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700">Next of kin phone number</label>
+                            <input type="tel" id="editNokPhone" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1">
+                        </div>
+                    </div>
                     <button type="submit" class="w-full bg-green-600 text-white py-2.5 rounded font-semibold hover:bg-green-700">Save Changes (Requires 2FA)</button>
                 </form>
+
+                <!-- Parents / guardians: children's details -->
+                <div id="kidsSection" class="hidden space-y-4 pt-4 border-t border-slate-200">
+                    <h2 class="text-lg font-bold text-purple-950">Your children</h2>
+                    <p class="text-xs text-slate-500">You can update contact details and next of kin for children under 18 linked to you. Ask the committee to change anything else.</p>
+                    <div id="kids" class="space-y-4"></div>
+                </div>
             </div>
             <div id="msg" class="mt-4 text-sm text-center font-medium"></div>
         </div>
@@ -73,11 +90,17 @@
                 }
 
                 // Load existing profile data
-                const { data } = await supabaseClient.from('members').select('*').eq('auth_id', session.user.id).single();
+                const { data } = await supabaseClient.from('members').select('*').eq('auth_id', session.user.id).maybeSingle();
                 if (data) {
                     document.getElementById('editName').value = data.name || '';
                     document.getElementById('editMobile').value = data.mobile || '';
                     document.getElementById('editPostcode').value = data.postcode || '';
+                    document.getElementById('editNok').value = data.next_of_kin_name || '';
+                    document.getElementById('editNokPhone').value = data.next_of_kin_phone || '';
+                    // parents who are not archers do not need their own next of kin
+                    document.getElementById('nokBox').classList.toggle('hidden', data.membertype === 'parent');
+                    window.__me = data;
+                    loadKids(data.id);
                 }
             }
         }
@@ -103,7 +126,11 @@
             const { data: updated, error } = await supabaseClient.from('members').update({
                 name: document.getElementById('editName').value,
                 mobile: document.getElementById('editMobile').value,
-                postcode: document.getElementById('editPostcode').value
+                postcode: document.getElementById('editPostcode').value,
+                ...((window.__me && window.__me.membertype === 'parent') ? {} : {
+                    next_of_kin_name: document.getElementById('editNok').value.trim(),
+                    next_of_kin_phone: document.getElementById('editNokPhone').value.trim()
+                })
             }).eq('auth_id', session.user.id).select('id');
 
             const msg = document.getElementById('msg');
@@ -117,6 +144,38 @@
                 msg.innerHTML = "Profile successfully updated!";
                 msg.className = "text-green-600 text-center";
             }
+        });
+
+        const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+        async function loadKids(myId) {
+            const { data: links } = await supabaseClient.from('member_guardians').select('child_id').eq('guardian_member_id', myId);
+            const ids = (links || []).map(l => l.child_id);
+            if (!ids.length) return;
+            const { data: kids } = await supabaseClient.from('members')
+                .select('id,name,mobile,postcode,next_of_kin_name,next_of_kin_phone').in('id', ids).order('name');
+            if (!kids || !kids.length) return;
+            document.getElementById('kidsSection').classList.remove('hidden');
+            document.getElementById('kids').innerHTML = kids.map(k => `
+                <form class="kid space-y-2 p-4 bg-slate-50 rounded border border-slate-200" data-id="${esc(k.id)}">
+                    <p class="font-semibold">${esc(k.name)}</p>
+                    <label class="block text-xs text-slate-600">Name <input name="name" value="${esc(k.name)}" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">Mobile <input name="mobile" value="${esc(k.mobile)}" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">Postcode <input name="postcode" value="${esc(k.postcode)}" maxlength="12" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">Next of kin name <input name="next_of_kin_name" value="${esc(k.next_of_kin_name)}" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">Next of kin phone <input name="next_of_kin_phone" value="${esc(k.next_of_kin_phone)}" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded text-sm font-semibold">Save (requires 2FA)</button>
+                </form>`).join('');
+        }
+        document.getElementById('kids').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const f = e.target, o = {};
+            ['name','mobile','postcode','next_of_kin_name','next_of_kin_phone'].forEach(n => o[n] = f.elements[n].value.trim());
+            const { data, error } = await supabaseClient.from('members').update(o).eq('id', f.dataset.id).select('id');
+            const msg = document.getElementById('msg');
+            if (error) { msg.textContent = 'Could not save: ' + error.message; msg.className = 'text-red-600 text-center'; }
+            else if (!data || !data.length) { msg.innerHTML = "Nothing was saved. Enter your 2FA code first (<a class='underline' href='/db/security.html?next=/db/edit-profile.html'>do it here</a>)."; msg.className = 'text-red-600 text-center'; }
+            else { msg.textContent = 'Saved.'; msg.className = 'text-green-600 text-center'; }
         });
 
         checkSession();
