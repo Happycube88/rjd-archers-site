@@ -88,6 +88,31 @@
             </table>
         </div>
 
+        <!-- Public: 252 badge rules and records -->
+        <div id="badge252" class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
+            <h2 class="text-2xl font-bold text-slate-900">252 Outdoor Round Badges</h2>
+            <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                <li>Shoot 3 dozen (36) arrows at one distance, 9-based scoring (5 zone). The 252 Round has its own score sheet in the score sheets box, or use the first 36 arrows of any outdoor round at a set distance.</li>
+                <li>Score the target for your bow type <b>twice</b> at the same distance and you earn a quiver badge showing the distance and “252”.</li>
+                <li>Badges are available at 20, 30, 40, 50, 60, 80 and 100 yards. A recurve average of 7 per arrow (252 ÷ 36) is a good sign you are ready for the next distance.</li>
+                <li>The top verified 252 badge scores are club records.</li>
+            </ul>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-3">Score needed (36 arrows)</th><th class="p-3">20</th><th class="p-3">30</th><th class="p-3">40</th><th class="p-3">50</th><th class="p-3">60</th><th class="p-3">80</th><th class="p-3">100 yds</th></tr></thead>
+                    <tbody id="rulesRows"></tbody>
+                </table>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 pt-2">252 Badge Records</h3>
+            <p class="text-xs text-slate-500">Best verified score at each distance and bow type. Juniors are shown by first name and initial only.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-3">Bow</th><th class="p-3">Distance</th><th class="p-3">Score</th><th class="p-3">Archer</th><th class="p-3">Date</th></tr></thead>
+                    <tbody id="top252Rows"><tr><td colspan="5" class="p-3 text-center text-slate-500">Loading…</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Committee only: add / edit -->
         <div id="editBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200">
             <h2 id="formTitle" class="text-xl font-bold text-purple-950 mb-4">Add a record (record keeper only)</h2>
@@ -122,39 +147,50 @@
         <!-- Signed-in members: 252 progress -->
         <div id="p252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
             <h2 class="text-xl font-bold text-slate-900">My 252 Progress</h2>
-            <p class="text-sm text-slate-500">Add your scores here. The record keeper checks each one against the score sheet; until then it shows as “Awaiting check”.</p>
+            <p class="text-sm text-slate-500">Add each 36-arrow score. The record keeper checks it against the signed score sheet; until then it shows “Awaiting check”. A badge needs <b>two verified</b> scores at or above the target at the same distance.</p>
             <form id="p252Form" class="space-y-3">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <input name="shoot_date" type="date" required class="border border-slate-300 rounded p-2 text-sm">
-                    <select name="round" id="p252Round" required class="border border-slate-300 rounded p-2 text-sm"><option value="">Choose round…</option></select>
-                    <select name="bow_style" id="p252Bow" required class="border border-slate-300 rounded p-2 text-sm"><option value="">Choose bow type…</option></select>
-                    <input name="score" type="number" min="0" placeholder="Score" required class="border border-slate-300 rounded p-2 text-sm">
-                    <input name="stage" placeholder="Stage / award" class="border border-slate-300 rounded p-2 text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <input name="shoot_date" type="date" required class="border border-slate-300 rounded p-2 text-sm" aria-label="Date shot">
+                    <select name="bow_style" id="p252Bow" required class="border border-slate-300 rounded p-2 text-sm" aria-label="Bow type"><option value="">Bow type…</option></select>
+                    <select name="distance_yds" id="p252Dist" required class="border border-slate-300 rounded p-2 text-sm" aria-label="Distance"><option value="">Distance…</option></select>
+                    <input name="score" id="p252Score" type="number" min="0" max="324" placeholder="Score (36 arrows, max 324)" required class="border border-slate-300 rounded p-2 text-sm">
+                    <select name="round" id="p252Round" required class="border border-slate-300 rounded p-2 text-sm" aria-label="Round shot"><option value="">Round shot…</option></select>
+                    <input name="notes" maxlength="120" placeholder="Venue / event (optional)" class="border border-slate-300 rounded p-2 text-sm">
                 </div>
+                <p id="p252Hint" class="text-sm text-slate-600"></p>
+                <label class="flex items-start gap-2 text-sm text-slate-700"><input type="checkbox" name="first36" required class="mt-1"> These are the first 36 arrows I shot at this distance.</label>
                 <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold text-sm">Add entry</button>
             </form>
+            <div id="p252Badges" class="flex flex-wrap gap-2"></div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead><tr class="bg-slate-100 border-b border-slate-200">
-                        <th class="p-3">Date</th><th class="p-3">Round</th><th class="p-3">Bow</th>
-                        <th class="p-3">Score</th><th class="p-3">Stage</th><th class="p-3">Status</th>
+                        <th class="p-3">Date</th><th class="p-3">Bow</th><th class="p-3">Distance</th><th class="p-3">Score</th>
+                        <th class="p-3">Round</th><th class="p-3">Target met?</th><th class="p-3">Status</th>
                     </tr></thead>
                     <tbody id="p252Rows"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Record keeper: verify members' 252 entries -->
-        <div id="keeper252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-3">
+        <!-- Record keeper: verify members' 252 entries, see badges earned -->
+        <div id="keeper252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-4">
             <h2 class="text-xl font-bold text-purple-950">252 entries to check (record keeper)</h2>
-            <p class="text-sm text-slate-500">Compare each entry with the signed score sheet, then tick it as verified. Unverified entries are listed first.</p>
+            <p class="text-sm text-slate-500">Compare each entry with the signed score sheet, then Verify it. Unverified entries are listed first. Check the archer shot their first 36 arrows at that distance.</p>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead><tr class="bg-slate-100 border-b border-slate-200">
-                        <th class="p-3">Archer</th><th class="p-3">Date</th><th class="p-3">Round</th><th class="p-3">Bow</th>
-                        <th class="p-3">Score</th><th class="p-3">Stage</th><th class="p-3">Status</th><th class="p-3"></th>
+                        <th class="p-3">Archer</th><th class="p-3">Date</th><th class="p-3">Bow</th><th class="p-3">Distance</th>
+                        <th class="p-3">Score / target</th><th class="p-3">Round</th><th class="p-3">Status</th><th class="p-3"></th>
                     </tr></thead>
                     <tbody id="k252Rows"></tbody>
+                </table>
+            </div>
+            <h3 class="text-lg font-bold text-purple-950">Badges earned (two verified scores at the target)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-3">Archer</th><th class="p-3">Bow</th><th class="p-3">Distance</th><th class="p-3">Earned on</th></tr></thead>
+                    <tbody id="kBadgeRows"></tbody>
                 </table>
             </div>
         </div>
@@ -193,11 +229,7 @@
             const rs = $('recRound'), cur = rs.value;
             rs.innerHTML = opts(rounds.filter(r => r.environment === env).map(r => r.name), 'Choose round…', cur);
             rs.value = cur;
-            const p = $('p252Round'), pc = p.value;
-            p.innerHTML = opts(rounds.map(r => r.name), 'Choose round…', pc); p.value = pc;
-            const b = $('p252Bow'), bc = b.value;
-            const bows = [...new Set([...BOWS.slice(0,4), ...all.map(r => r.bow_style).filter(Boolean)])].sort();
-            b.innerHTML = opts(bows, 'Choose bow type…', bc); b.value = bc;
+            fill252Selects();
         }
         $('recForm').elements.environment.addEventListener('change', fillRoundSelects);
         $('addRoundBtn').addEventListener('click', async () => {
@@ -323,25 +355,75 @@
             }
         });
 
-        /* ---------- Members: 252 progress ---------- */
+        /* ---------- 252 Outdoor Round badges ---------- */
+        const DISTS = [20,30,40,50,60,80,100], BOWS252 = ['Recurve','Compound','Longbow','Barebow'];
+        let thresh = [];
+        const minFor = (bow, d) => { const t = thresh.find(t => t.bow_style.toLowerCase() === String(bow || '').toLowerCase() && t.distance_yds === +d); return t ? t.min_score : null; };
+        const gbDate = d => d ? new Date(d).toLocaleDateString('en-GB') : '';
+
+        function fill252Selects() {
+            const b = $('p252Bow'), bc = b.value;
+            b.innerHTML = opts(BOWS252, 'Bow type…', bc); b.value = bc;
+            const d = $('p252Dist'), dc = d.value;
+            d.innerHTML = `<option value="">Distance…</option>` + DISTS.map(x => `<option value="${x}">${x} yards</option>`).join(''); d.value = dc;
+            const r = $('p252Round'), rc = r.value;
+            const names = ['252 Round (score sheet)', ...rounds.filter(x => x.environment === 'outdoor').map(x => x.name), 'Other outdoor round'];
+            r.innerHTML = opts(names, 'Round shot…', rc); r.value = rc;
+        }
+        function update252Hint() {
+            const f = $('p252Form'); if (!f) return;
+            const m = minFor(f.elements.bow_style.value, f.elements.distance_yds.value);
+            const sc = f.elements.score.value;
+            $('p252Hint').textContent = m ? `Target for ${f.elements.bow_style.value} at ${f.elements.distance_yds.value} yards: ${m} or more` +
+                (sc !== '' ? (+sc >= m ? ' — this score meets it.' : ' — this score is below it.') : '.') : '';
+        }
+        ['bow_style','distance_yds','score'].forEach(n => $('p252Form').elements[n].addEventListener('input', update252Hint));
+
+        async function loadThresholds() {
+            const { data } = await sb.from('badge_252_thresholds').select('bow_style,distance_yds,min_score');
+            thresh = data || [];
+            $('rulesRows').innerHTML = BOWS252.map(b => `<tr class="border-b border-slate-100"><td class="p-3 font-semibold">${esc(b)}</td>` +
+                DISTS.map(d => `<td class="p-3">${esc(minFor(b, d) ?? '')}</td>`).join('') + '</tr>').join('');
+            update252Hint();
+        }
+        async function loadTop252() {
+            const { data, error } = await sb.rpc('top_252_scores');
+            $('top252Rows').innerHTML = (!error && data && data.length) ? data.map(r => `<tr class="border-b border-slate-100">
+                <td class="p-3">${esc(r.bow_style)}</td><td class="p-3">${esc(r.distance_yds)} yds</td><td class="p-3 font-bold">${esc(r.score)}</td>
+                <td class="p-3">${esc(r.archer)}</td><td class="p-3">${esc(gbDate(r.shoot_date))}</td></tr>`).join('')
+                : `<tr><td colspan="5" class="p-3 text-center text-slate-500">${error ? 'Could not load.' : 'No verified 252 scores yet.'}</td></tr>`;
+        }
+
         async function load252() {
             const { data, error } = await sb.from('member_252_progress').select('*')
                 .eq('member_id', me.id).order('shoot_date', { ascending: false });
             if (error) return say(error.message, true);
-            $('p252Rows').innerHTML = (data || []).map(r => `<tr class="border-b border-slate-100">
-                <td class="p-3">${esc(new Date(r.shoot_date).toLocaleDateString('en-GB'))}</td>
-                <td class="p-3">${esc(r.round)}</td><td class="p-3">${esc(r.bow_style)}</td>
-                <td class="p-3">${esc(r.score)}</td><td class="p-3">${esc(r.stage)}</td>
+            const rows = data || [], prog = {};
+            rows.forEach(r => {
+                const m = minFor(r.bow_style, r.distance_yds); r._min = m; r._q = m != null && r.score >= m;
+                if (m != null) { const k = `${String(r.bow_style).toLowerCase()}|${r.distance_yds}`; prog[k] = prog[k] || { bow: r.bow_style, d: r.distance_yds, v: 0, p: 0 }; if (r._q) { r.verified ? prog[k].v++ : prog[k].p++; } }
+            });
+            $('p252Badges').innerHTML = Object.values(prog).filter(x => x.v + x.p).sort((a, b) => a.d - b.d).map(x => x.v >= 2
+                ? `<span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">🏅 ${esc(x.bow)} ${x.d} yds: badge earned</span>`
+                : `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm">${esc(x.bow)} ${x.d} yds: ${x.v} of 2 verified${x.p ? ` (+${x.p} awaiting check)` : ''}</span>`).join('');
+            $('p252Rows').innerHTML = rows.map(r => `<tr class="border-b border-slate-100">
+                <td class="p-3">${esc(gbDate(r.shoot_date))}</td><td class="p-3">${esc(r.bow_style)}</td>
+                <td class="p-3">${r.distance_yds ? esc(r.distance_yds) + ' yds' : '<span class="text-slate-400">not set</span>'}</td>
+                <td class="p-3">${esc(r.score)}${r._min ? ` <span class="text-slate-400">/ ${r._min}</span>` : ''}</td>
+                <td class="p-3">${esc(r.round)}</td>
+                <td class="p-3">${r._min == null ? '–' : r._q ? '✅ Yes' : 'Not yet'}</td>
                 <td class="p-3">${r.verified ? '<span class="text-green-700 font-semibold">✅ Verified</span>' : '<span class="text-amber-700">Awaiting check</span>'}</td></tr>`).join('')
-                || `<tr><td colspan="6" class="p-3 text-center text-slate-500">No entries yet.</td></tr>`;
+                || `<tr><td colspan="7" class="p-3 text-center text-slate-500">No entries yet.</td></tr>`;
         }
         $('p252Form').addEventListener('submit', async e => {
             e.preventDefault();
-            const o = Object.fromEntries(new FormData(e.target));
-            o.member_id = me.id; o.score = o.score ? +o.score : null;
+            const f = e.target.elements;
+            const o = { member_id: me.id, shoot_date: f.shoot_date.value, bow_style: f.bow_style.value,
+                        distance_yds: +f.distance_yds.value, score: +f.score.value, round: f.round.value, notes: f.notes.value.trim() || null };
+            if (!(o.score >= 0 && o.score <= 324)) return say('Score must be between 0 and 324 (36 arrows, 9 max each).', true);
             const { error } = await sb.from('member_252_progress').insert(o);
             if (error) return say('Could not save: ' + error.message, true);
-            e.target.reset(); load252();
+            e.target.reset(); update252Hint(); say('Entry added. It will show as Awaiting check until the record keeper verifies it.'); load252();
         });
 
         async function loadKeeper252() {
@@ -349,15 +431,19 @@
             if (error) return say(error.message, true);
             $('k252Rows').innerHTML = (data || []).map(r => `<tr class="border-b border-slate-100">
                 <td class="p-3">${esc(r.member_name)}</td>
-                <td class="p-3">${esc(new Date(r.shoot_date).toLocaleDateString('en-GB'))}</td>
-                <td class="p-3">${esc(r.round)}</td><td class="p-3">${esc(r.bow_style)}</td>
-                <td class="p-3">${esc(r.score)}</td><td class="p-3">${esc(r.stage)}</td>
+                <td class="p-3">${esc(gbDate(r.shoot_date))}</td><td class="p-3">${esc(r.bow_style)}</td>
+                <td class="p-3">${r.distance_yds ? esc(r.distance_yds) + ' yds' : '<span class="text-red-600">not set</span>'}</td>
+                <td class="p-3">${esc(r.score)}${r.min_score ? ` / ${esc(r.min_score)} ${r.qualifies ? '✅' : '❌'}` : ' <span class="text-slate-400">(no target)</span>'}${r.badge_earned ? ' 🏅' : ''}</td>
+                <td class="p-3">${esc(r.round)}${r.notes ? `<div class="text-xs text-slate-500">${esc(r.notes)}</div>` : ''}</td>
                 <td class="p-3">${r.verified ? '✅ Verified' : '<span class="text-amber-700">Awaiting check</span>'}</td>
                 <td class="p-3 whitespace-nowrap">
                     <button data-k="${r.verified ? 'unver' : 'ver'}" data-id="${esc(r.id)}" class="text-purple-700 underline">${r.verified ? 'Un-verify' : 'Verify'}</button>
                     <button data-k="del" data-id="${esc(r.id)}" class="text-red-600 underline ml-2">Reject</button>
                 </td></tr>`).join('')
                 || `<tr><td colspan="8" class="p-3 text-center text-slate-500">No 252 entries yet.</td></tr>`;
+            const { data: bd } = await sb.rpc('list_252_badges_for_keeper');
+            $('kBadgeRows').innerHTML = (bd || []).map(r => `<tr class="border-b border-slate-100"><td class="p-3">${esc(r.member_name)}</td><td class="p-3">${esc(r.bow_style)}</td><td class="p-3">${esc(r.distance_yds)} yds</td><td class="p-3">${esc(gbDate(r.earned_on))}</td></tr>`).join('')
+                || `<tr><td colspan="4" class="p-3 text-center text-slate-500">No badges earned yet.</td></tr>`;
         }
         $('k252Rows').addEventListener('click', async e => {
             const k = e.target.dataset.k, id = e.target.dataset.id;
@@ -372,11 +458,11 @@
             if (res.error) return say('Failed: ' + res.error.message, true);
             if (!res.data || !res.data.length) return say('Nothing changed. You need 2FA to verify entries.', true);
             say(k === 'ver' ? 'Verified.' : k === 'unver' ? 'Marked as awaiting check.' : 'Entry removed.');
-            loadKeeper252(); if (me) load252();
+            loadKeeper252(); loadTop252(); if (me) load252();
         });
 
         sb.auth.onAuthStateChange(() => refreshAuth());
-        loadRounds(); loadRecords(); refreshAuth();
+        loadRounds(); loadRecords(); loadThresholds().then(() => { loadTop252(); refreshAuth(); });
     </script>
 </body>
 </html>
