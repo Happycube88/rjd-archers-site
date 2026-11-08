@@ -98,7 +98,7 @@
                         <option value="indoor">Indoor</option>
                         <option value="outdoor">Outdoor</option>
                     </select>
-                    <input name="round" list="dlRound" placeholder="Round (e.g. Worcester)" required class="border border-slate-300 rounded p-2 text-sm">
+                    <select name="round" id="recRound" required class="border border-slate-300 rounded p-2 text-sm"><option value="">Choose round…</option></select>
                     <input name="bow_style" list="dlBow" placeholder="Bow type" required class="border border-slate-300 rounded p-2 text-sm">
                     <input name="class" list="dlClass" placeholder="Class (e.g. Lady Master 50+)" required class="border border-slate-300 rounded p-2 text-sm">
                     <input name="score" type="number" min="0" placeholder="Score" required class="border border-slate-300 rounded p-2 text-sm">
@@ -106,7 +106,12 @@
                     <input name="shot_date" type="date" class="border border-slate-300 rounded p-2 text-sm">
                     <input name="venue" placeholder="Venue / event" class="border border-slate-300 rounded p-2 text-sm">
                 </div>
-                <datalist id="dlRound"></datalist><datalist id="dlBow"></datalist><datalist id="dlClass"></datalist>
+                <datalist id="dlBow"></datalist><datalist id="dlClass"></datalist>
+                <div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                    <span>Round not in the list?</span>
+                    <input id="newRound" maxlength="60" placeholder="New round name" class="border border-slate-300 rounded p-1.5 text-sm">
+                    <button type="button" id="addRoundBtn" class="border border-purple-600 text-purple-700 px-3 py-1.5 rounded text-sm">Add to list</button>
+                </div>
                 <div class="flex gap-3">
                     <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold text-sm">Save record</button>
                     <button type="button" id="cancelEdit" class="hidden text-slate-600 underline text-sm">Cancel edit</button>
@@ -117,12 +122,13 @@
         <!-- Signed-in members: 252 progress -->
         <div id="p252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
             <h2 class="text-xl font-bold text-slate-900">My 252 Progress</h2>
+            <p class="text-sm text-slate-500">Add your scores here. The record keeper checks each one against the score sheet; until then it shows as “Awaiting check”.</p>
             <form id="p252Form" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                     <input name="shoot_date" type="date" required class="border border-slate-300 rounded p-2 text-sm">
-                    <input name="round" placeholder="Round" class="border border-slate-300 rounded p-2 text-sm">
-                    <input name="bow_style" placeholder="Bow type" class="border border-slate-300 rounded p-2 text-sm">
-                    <input name="score" type="number" min="0" placeholder="Score" class="border border-slate-300 rounded p-2 text-sm">
+                    <select name="round" id="p252Round" required class="border border-slate-300 rounded p-2 text-sm"><option value="">Choose round…</option></select>
+                    <select name="bow_style" id="p252Bow" required class="border border-slate-300 rounded p-2 text-sm"><option value="">Choose bow type…</option></select>
+                    <input name="score" type="number" min="0" placeholder="Score" required class="border border-slate-300 rounded p-2 text-sm">
                     <input name="stage" placeholder="Stage / award" class="border border-slate-300 rounded p-2 text-sm">
                 </div>
                 <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold text-sm">Add entry</button>
@@ -131,9 +137,24 @@
                 <table class="w-full text-left border-collapse text-sm">
                     <thead><tr class="bg-slate-100 border-b border-slate-200">
                         <th class="p-3">Date</th><th class="p-3">Round</th><th class="p-3">Bow</th>
-                        <th class="p-3">Score</th><th class="p-3">Stage</th><th class="p-3">Verified</th>
+                        <th class="p-3">Score</th><th class="p-3">Stage</th><th class="p-3">Status</th>
                     </tr></thead>
                     <tbody id="p252Rows"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Record keeper: verify members' 252 entries -->
+        <div id="keeper252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-3">
+            <h2 class="text-xl font-bold text-purple-950">252 entries to check (record keeper)</h2>
+            <p class="text-sm text-slate-500">Compare each entry with the signed score sheet, then tick it as verified. Unverified entries are listed first.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200">
+                        <th class="p-3">Archer</th><th class="p-3">Date</th><th class="p-3">Round</th><th class="p-3">Bow</th>
+                        <th class="p-3">Score</th><th class="p-3">Stage</th><th class="p-3">Status</th><th class="p-3"></th>
+                    </tr></thead>
+                    <tbody id="k252Rows"></tbody>
                 </table>
             </div>
         </div>
@@ -151,11 +172,43 @@
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const $ = id => document.getElementById(id);
-        let all = [], isKeeper = false, has2fa = false, me = null;
+        let all = [], rounds = [], isKeeper = false, has2fa = false, me = null;
 
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const fmtDate = r => r.shot_date ? new Date(r.shot_date).toLocaleDateString('en-GB') : (r.date_text || '');
         const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+
+        const BOWS = ['Recurve','Compound','Barebow','Longbow','Double Recurve','Bare Bow','Long Bow'];
+        function opts(list, first, cur) {
+            const vals = cur && !list.includes(cur) ? [cur, ...list] : list;
+            return `<option value="">${first}</option>` + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+        }
+        async function loadRounds() {
+            const { data } = await sb.from('rounds').select('name,environment,sort').eq('active', true).order('sort').order('name');
+            rounds = data || [];
+            fillRoundSelects();
+        }
+        function fillRoundSelects() {
+            const env = $('recForm').elements.environment.value;
+            const rs = $('recRound'), cur = rs.value;
+            rs.innerHTML = opts(rounds.filter(r => r.environment === env).map(r => r.name), 'Choose round…', cur);
+            rs.value = cur;
+            const p = $('p252Round'), pc = p.value;
+            p.innerHTML = opts(rounds.map(r => r.name), 'Choose round…', pc); p.value = pc;
+            const b = $('p252Bow'), bc = b.value;
+            const bows = [...new Set([...BOWS.slice(0,4), ...all.map(r => r.bow_style).filter(Boolean)])].sort();
+            b.innerHTML = opts(bows, 'Choose bow type…', bc); b.value = bc;
+        }
+        $('recForm').elements.environment.addEventListener('change', fillRoundSelects);
+        $('addRoundBtn').addEventListener('click', async () => {
+            const name = $('newRound').value.trim();
+            if (!name) return say('Type the new round name first.', true);
+            const environment = $('recForm').elements.environment.value;
+            const { error } = await sb.from('rounds').insert({ name, environment, sort: 200 });
+            if (error) return say('Could not add round: ' + (error.code === '23505' ? 'that round is already in the list.' : error.message), true);
+            $('newRound').value = ''; say('Round added.');
+            await loadRounds(); $('recRound').value = name;
+        });
 
         /* ---------- Public: load + filter ---------- */
         async function loadRecords() {
@@ -164,8 +217,9 @@
             if (error) { $('rows').innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-600">Could not load records (${esc(error.message)})</td></tr>`; return; }
             all = data;
             fillSelect('fBow', 'bow_style', 'dlBow');
-            fillSelect('fRound', 'round', 'dlRound');
+            fillSelect('fRound', 'round');
             fillSelect('fClass', 'class', 'dlClass');
+            fillRoundSelects();
             render();
         }
         function fillSelect(id, key, listId) {
@@ -173,7 +227,7 @@
             const vals = [...new Set(all.map(r => r[key]).filter(Boolean))].sort();
             sel.innerHTML = first + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
             sel.value = cur;
-            $(listId).innerHTML = vals.map(v => `<option value="${esc(v)}">`).join('');
+            if (listId && $(listId)) $(listId).innerHTML = vals.map(v => `<option value="${esc(v)}">`).join('');
         }
         function render() {
             const f = { environment: $('fEnv').value, bow_style: $('fBow').value, round: $('fRound').value, class: $('fClass').value };
@@ -226,7 +280,9 @@
             $('p252Box').classList.toggle('hidden', !me);
             $('mfaNote').classList.toggle('hidden', !((isKeeper || me) && !has2fa));
             render();
+            $('keeper252Box').classList.toggle('hidden', !isKeeper);
             if (me) load252();
+            if (isKeeper) loadKeeper252();
         }
 
         /* ---------- Committee: add / edit / delete ---------- */
@@ -244,7 +300,7 @@
             resetForm(); loadRecords();
         });
         function resetForm() {
-            $('recForm').reset(); $('recForm').elements.id.value = '';
+            $('recForm').reset(); $('recForm').elements.id.value = ''; fillRoundSelects();
             $('formTitle').textContent = 'Add a record (record keeper only)';
             $('cancelEdit').classList.add('hidden');
         }
@@ -253,7 +309,9 @@
             const eid = e.target.dataset.edit, did = e.target.dataset.del;
             if (eid) {
                 const r = all.find(x => x.id == eid), f = $('recForm').elements;
-                ['id','environment','round','bow_style','class','score','archer_name','shot_date','venue'].forEach(k => f[k].value = r[k] ?? '');
+                f.environment.value = r.environment; fillRoundSelects();
+                if (r.round && ![...f.round.options].some(o => o.value === r.round)) f.round.add(new Option(r.round, r.round));
+                ['id','round','bow_style','class','score','archer_name','shot_date','venue'].forEach(k => f[k].value = r[k] ?? '');
                 $('formTitle').textContent = 'Edit record';
                 $('cancelEdit').classList.remove('hidden');
                 $('editBox').scrollIntoView({ behavior: 'smooth' });
@@ -274,7 +332,7 @@
                 <td class="p-3">${esc(new Date(r.shoot_date).toLocaleDateString('en-GB'))}</td>
                 <td class="p-3">${esc(r.round)}</td><td class="p-3">${esc(r.bow_style)}</td>
                 <td class="p-3">${esc(r.score)}</td><td class="p-3">${esc(r.stage)}</td>
-                <td class="p-3">${r.verified ? '✅' : 'Pending'}</td></tr>`).join('')
+                <td class="p-3">${r.verified ? '<span class="text-green-700 font-semibold">✅ Verified</span>' : '<span class="text-amber-700">Awaiting check</span>'}</td></tr>`).join('')
                 || `<tr><td colspan="6" class="p-3 text-center text-slate-500">No entries yet.</td></tr>`;
         }
         $('p252Form').addEventListener('submit', async e => {
@@ -286,8 +344,39 @@
             e.target.reset(); load252();
         });
 
+        async function loadKeeper252() {
+            const { data, error } = await sb.rpc('list_252_for_keeper');
+            if (error) return say(error.message, true);
+            $('k252Rows').innerHTML = (data || []).map(r => `<tr class="border-b border-slate-100">
+                <td class="p-3">${esc(r.member_name)}</td>
+                <td class="p-3">${esc(new Date(r.shoot_date).toLocaleDateString('en-GB'))}</td>
+                <td class="p-3">${esc(r.round)}</td><td class="p-3">${esc(r.bow_style)}</td>
+                <td class="p-3">${esc(r.score)}</td><td class="p-3">${esc(r.stage)}</td>
+                <td class="p-3">${r.verified ? '✅ Verified' : '<span class="text-amber-700">Awaiting check</span>'}</td>
+                <td class="p-3 whitespace-nowrap">
+                    <button data-k="${r.verified ? 'unver' : 'ver'}" data-id="${esc(r.id)}" class="text-purple-700 underline">${r.verified ? 'Un-verify' : 'Verify'}</button>
+                    <button data-k="del" data-id="${esc(r.id)}" class="text-red-600 underline ml-2">Reject</button>
+                </td></tr>`).join('')
+                || `<tr><td colspan="8" class="p-3 text-center text-slate-500">No 252 entries yet.</td></tr>`;
+        }
+        $('k252Rows').addEventListener('click', async e => {
+            const k = e.target.dataset.k, id = e.target.dataset.id;
+            if (!k) return;
+            let res;
+            if (k === 'del') {
+                if (!confirm('Reject and delete this entry?')) return;
+                res = await sb.from('member_252_progress').delete().eq('id', id).select('id');
+            } else {
+                res = await sb.from('member_252_progress').update({ verified: k === 'ver' }).eq('id', id).select('id');
+            }
+            if (res.error) return say('Failed: ' + res.error.message, true);
+            if (!res.data || !res.data.length) return say('Nothing changed. You need 2FA to verify entries.', true);
+            say(k === 'ver' ? 'Verified.' : k === 'unver' ? 'Marked as awaiting check.' : 'Entry removed.');
+            loadKeeper252(); if (me) load252();
+        });
+
         sb.auth.onAuthStateChange(() => refreshAuth());
-        loadRecords(); refreshAuth();
+        loadRounds(); loadRecords(); refreshAuth();
     </script>
 </body>
 </html>
