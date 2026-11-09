@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Members | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6 font-sans text-slate-800">
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h1 class="text-2xl font-bold text-purple-950">Committee: Edit People</h1>
+        <p class="text-sm text-slate-600 mt-1">Change anyone's details, type, fee category, course proof, committee boxes and parents or guardians. Every change needs your 2FA code.</p>
+        <p class="text-sm mt-2"><a class="underline text-purple-700" href="/db/committee-members.html">Member list</a> · <a class="underline text-purple-700" href="/db/committee-add-member.html">Add people</a> · <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-edit-member.html">Enter 2FA code</a></p>
+        <div id="gate" class="mt-4 text-sm"></div>
+    </div>
+
+    <div id="work" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">Find a person</h2>
+            <input id="search" placeholder="Type part of a name or email…" class="w-full border border-slate-300 p-2 rounded text-sm">
+            <label class="text-xs text-slate-600"><input type="checkbox" id="onlyGaps"> Only people with missing information</label>
+            <div class="overflow-x-auto max-h-72 overflow-y-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-2">Name</th><th class="p-2">Type</th><th class="p-2">Age</th><th class="p-2">Missing</th><th class="p-2"></th></tr></thead>
+                    <tbody id="people"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <form id="editForm" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-5">
+            <h2 class="text-lg font-bold text-purple-950">Editing: <span id="editingName"></span></h2>
+
+            <fieldset class="space-y-3">
+                <legend class="font-semibold text-sm text-purple-900">Personal details</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="text-sm">Title <input id="e_title" maxlength="20" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Full name <input id="e_name" required maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Date of birth <input id="e_dob" type="date" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Email <span id="emailNote" class="text-slate-500 text-xs"></span><input id="e_email" type="email" maxlength="254" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Mobile <input id="e_mobile" type="tel" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Address <input id="e_address1" maxlength="120" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Town <input id="e_town" maxlength="60" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">County <input id="e_county" maxlength="60" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Postcode <input id="e_postcode" maxlength="12" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-3">
+                <legend class="font-semibold text-sm text-purple-900">Next of kin</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="text-sm">Name <input id="e_next_of_kin_name" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Phone <input id="e_next_of_kin_phone" type="tel" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-3">
+                <legend class="font-semibold text-sm text-purple-900">Club</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="text-sm">Type
+                        <select id="e_membertype" class="w-full border border-slate-300 p-2 rounded mt-1">
+                            <option value="beginner">Beginner</option><option value="member">Member</option><option value="parent">Parent / guardian only</option>
+                        </select>
+                    </label>
+                    <label class="text-sm">Fee category
+                        <select id="e_fee_category" class="w-full border border-slate-300 p-2 rounded mt-1">
+                            <option value="">Automatic</option><option>Senior</option><option>Junior</option><option>Concessionary</option>
+                        </select>
+                    </label>
+                    <label class="text-sm">Archery GB number <input id="e_archerygbnum" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Date joined <input id="e_datejoinedclub" type="date" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Coach level (0 to 4) <input id="e_coachlevel" type="number" min="0" max="4" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                </div>
+                <div class="flex flex-wrap gap-4 text-sm">
+                    <label><input type="checkbox" id="e_firstaider"> First aider</label>
+                    <label><input type="checkbox" id="e_flagfor_allowphotos"> Photo permission given</label>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-3 p-3 bg-purple-50 rounded border border-purple-100">
+                <legend class="font-semibold text-sm text-purple-900">Beginners course proof (needed before someone can be a member)</legend>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <label class="text-sm">Done
+                        <select id="e_course_source" class="w-full border border-slate-300 p-2 rounded mt-1">
+                            <option value="">Not recorded</option><option value="club">With RJD Archers</option><option value="elsewhere">Elsewhere (certificate seen)</option>
+                        </select>
+                    </label>
+                    <label class="text-sm">Date <input id="e_course_date" type="date" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                    <label class="text-sm">Note <input id="e_course_note" maxlength="300" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-3 p-3 bg-amber-50 rounded border border-amber-200">
+                <legend class="font-semibold text-sm text-amber-900">Roles (take care: these give access to everyone's details)</legend>
+                <div class="flex flex-wrap gap-4 text-sm">
+                    <label><input type="checkbox" id="e_chaircom"> Chair</label>
+                    <label><input type="checkbox" id="e_secretarycom"> Secretary</label>
+                    <label><input type="checkbox" id="e_membershipcom"> Membership</label>
+                    <label><input type="checkbox" id="e_welfarecom"> Welfare</label>
+                    <label><input type="checkbox" id="e_tournamentscom"> Tournaments</label>
+                    <label><input type="checkbox" id="e_recordkeeper"> Record keeper</label>
+                </div>
+                <p class="text-xs text-slate-600">Any of the five committee boxes gives full committee access today. There must always be at least one committee member.</p>
+            </fieldset>
+
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Save changes (needs 2FA)</button>
+        </form>
+
+        <div id="familyBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-amber-200 space-y-4">
+            <div id="guardSection" class="hidden space-y-3">
+                <h2 class="text-lg font-bold text-purple-950">Parents and guardians</h2>
+                <ul id="guardList" class="text-sm space-y-2"></ul>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-slate-50 rounded border border-slate-200">
+                    <label class="text-xs sm:col-span-2">Add an existing person
+                        <select id="g_existing" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"><option value="">New person (fill in below)</option></select>
+                    </label>
+                    <label class="text-xs">Name <input id="g_name" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="text-xs">Email (they sign in with it) <input id="g_email" type="email" maxlength="254" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="text-xs">Mobile <input id="g_mobile" type="tel" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="text-xs">Relationship <input id="g_rel" maxlength="40" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <button type="button" id="addGuardBtn" class="sm:col-span-2 bg-slate-700 text-white px-4 py-2 rounded text-sm font-semibold">Add parent or guardian</button>
+                </div>
+            </div>
+            <div id="kidsSection" class="hidden space-y-2">
+                <h2 class="text-lg font-bold text-purple-950">Children linked to this person</h2>
+                <ul id="kidsList" class="text-sm space-y-1"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="msg" class="text-sm text-center font-medium"></div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const isUnder18 = dob => { if (!dob) return false; const d = new Date(); d.setFullYear(d.getFullYear() - 18); return new Date(dob) > d; };
+    const age = dob => dob ? Math.floor((Date.now() - new Date(dob)) / 31557600000) : '?';
+    const TEXT = ['title','name','mobile','address1','town','county','postcode','archerygbnum','next_of_kin_name','next_of_kin_phone','fee_category','course_source','course_note','membertype'];
+    const DATES = ['dob','datejoinedclub','course_date'];
+    const BOOLS = ['firstaider','flagfor_allowphotos','chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','recordkeeper'];
+    let people = [], links = [], current = null;
+
+    const gaps = m => { const g = [];
+        if (m.membertype !== 'parent' && (!m.next_of_kin_name || !m.next_of_kin_phone)) g.push('next of kin');
+        if (m.membertype === 'member' && !m.course_source) g.push('course proof');
+        if (!m.dob) g.push('date of birth');
+        if (isUnder18(m.dob) && !links.some(l => l.child_id === m.id)) g.push('parent');
+        return g; };
+
+    function renderPeople() {
+        const q = $('search').value.trim().toLowerCase(), only = $('onlyGaps').checked;
+        const rows = people.filter(m => (!q || (m.name + ' ' + (m.email || '')).toLowerCase().includes(q)) && (!only || gaps(m).length));
+        $('people').innerHTML = rows.map(m => `<tr class="border-b border-slate-100">
+            <td class="p-2 font-medium">${esc(m.name)}</td><td class="p-2">${esc(m.membertype)}</td><td class="p-2">${esc(age(m.dob))}</td>
+            <td class="p-2 text-red-600 text-xs">${esc(gaps(m).join(', '))}</td>
+            <td class="p-2"><button type="button" class="pick text-purple-700 underline" data-id="${esc(m.id)}">Edit</button></td></tr>`).join('')
+            || '<tr><td colspan="5" class="p-3 text-center text-slate-500">Nobody found.</td></tr>';
+    }
+    $('search').addEventListener('input', renderPeople); $('onlyGaps').addEventListener('change', renderPeople);
+    $('people').addEventListener('click', e => { if (e.target.dataset.id) select(e.target.dataset.id); });
+
+    async function loadAll(keepId) {
+        const { data, error } = await sb.from('members').select('*').order('name');
+        if (error) return say(error.message, true);
+        people = data || [];
+        const { data: l } = await sb.from('member_guardians').select('*');
+        links = l || [];
+        renderPeople();
+        if (keepId) select(keepId, true);
+    }
+
+    function select(id, quiet) {
+        current = people.find(p => p.id === id); if (!current) return;
+        $('editForm').classList.remove('hidden'); $('familyBox').classList.remove('hidden');
+        $('editingName').textContent = current.name;
+        TEXT.forEach(k => $('e_' + k).value = current[k] ?? '');
+        DATES.forEach(k => $('e_' + k).value = current[k] ?? '');
+        $('e_coachlevel').value = current.coachlevel ?? 0;
+        $('e_email').value = current.email ?? '';
+        $('e_email').readOnly = !!current.auth_id;
+        $('emailNote').textContent = current.auth_id ? '(locked: they have signed in with it)' : '';
+        BOOLS.forEach(k => $('e_' + k).checked = !!current[k]);
+        renderFamily();
+        if (!quiet) { say(''); $('editForm').scrollIntoView(); }
+    }
+
+    function renderFamily() {
+        const kidLinks = links.filter(l => l.child_id === current.id), childLinks = links.filter(l => l.guardian_member_id === current.id);
+        const nameOf = id => (people.find(p => p.id === id) || {}).name || 'Unknown';
+        const under = isUnder18(current.dob);
+        $('guardSection').classList.toggle('hidden', !(under || kidLinks.length));
+        $('kidsSection').classList.toggle('hidden', !childLinks.length);
+        $('guardList').innerHTML = kidLinks.map(l => `<li class="flex justify-between gap-2 p-2 bg-slate-50 rounded border border-slate-200">
+            <span>${esc(nameOf(l.guardian_member_id))}${l.relationship ? ' (' + esc(l.relationship) + ')' : ''}</span>
+            <button type="button" class="unlink text-red-600 underline" data-id="${esc(l.id)}">Remove link</button></li>`).join('')
+            || '<li class="text-red-600">No parent or guardian yet. Under-18s need at least one.</li>';
+        $('kidsList').innerHTML = childLinks.map(l => `<li>${esc(nameOf(l.child_id))}${l.relationship ? ' (' + esc(l.relationship) + ')' : ''}</li>`).join('');
+        $('g_existing').innerHTML = '<option value="">New person (fill in below)</option>' +
+            people.filter(p => p.id !== current.id && !kidLinks.some(l => l.guardian_member_id === p.id) && !isUnder18(p.dob))
+                  .map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${esc(p.membertype)})</option>`).join('');
+    }
+
+    $('editForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!current) return;
+        const o = {};
+        TEXT.forEach(k => { const v = $('e_' + k).value.trim(); o[k] = v === '' ? null : v; });
+        DATES.forEach(k => { const v = $('e_' + k).value; o[k] = v === '' ? null : v; });
+        o.coachlevel = $('e_coachlevel').value === '' ? 0 : +$('e_coachlevel').value;
+        if (!current.auth_id) { const v = $('e_email').value.trim().toLowerCase(); o.email = v === '' ? null : v; }
+        BOOLS.forEach(k => o[k] = $('e_' + k).checked);
+        o.beginnercoursecomplete = !!o.course_source;
+        if (!o.name) return say('A name is needed.', true);
+        if (!o.membertype) o.membertype = 'beginner';
+        if (o.membertype === 'member' && !o.course_source) return say('To be a member, record where the beginners course was done.', true);
+        if (o.membertype !== 'parent' && (!o.next_of_kin_name || !o.next_of_kin_phone)) say('Saving anyway, but this person still has no next of kin.', true);
+        const { data, error } = await sb.from('members').update(o).eq('id', current.id).select('id');
+        if (error) return say(error.code === '42501' ? 'Committee with 2FA only: enter your 2FA code first.' : error.message, true);
+        if (!data || !data.length) return say('Nothing was saved. Enter your 2FA code first.', true);
+        say('Saved.'); await loadAll(current.id);
+    });
+
+    $('guardList').addEventListener('click', async e => {
+        const id = e.target.dataset.id; if (!id || !e.target.classList.contains('unlink')) return;
+        if (!confirm('Remove this parent or guardian link? The person stays in the club list.')) return;
+        const { data, error } = await sb.from('member_guardians').delete().eq('id', id).select('id');
+        if (error) return say(error.message, true);
+        if (!data || !data.length) return say('Nothing was removed. Enter your 2FA code first.', true);
+        say('Link removed.'); await loadAll(current.id);
+    });
+    $('addGuardBtn').addEventListener('click', async () => {
+        const g = { member_id: $('g_existing').value, name: $('g_name').value.trim(), email: $('g_email').value.trim(),
+                    mobile: $('g_mobile').value.trim(), relationship: $('g_rel').value.trim() };
+        if (!g.member_id && (!g.name || !g.email)) return say('Choose an existing person, or give a name and an email.', true);
+        const { error } = await sb.rpc('committee_add_guardian', { p_child: current.id, p_guardian: g });
+        if (error) return say(error.code === '42501' ? 'Committee with 2FA only: enter your 2FA code first.' : error.message, true);
+        ['g_name','g_email','g_mobile','g_rel'].forEach(i => $(i).value = ''); $('g_existing').value = '';
+        say('Parent or guardian added.'); await loadAll(current.id);
+    });
+
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        const gate = $('gate');
+        if (!session) {
+            gate.innerHTML = '<button id="loginBtn" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold">Committee login</button>';
+            $('loginBtn').onclick = async () => {
+                const email = prompt('Committee email address:'); if (!email) return;
+                const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+                say(error ? error.message : 'Check your email for the sign-in link.', !!error);
+            };
+            return;
+        }
+        const { data: isC } = await sb.rpc('is_committee');
+        if (isC !== true) { gate.textContent = 'This page is for committee members only.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        gate.innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>'
+            : '<span class="text-red-700">2FA needed to change anything.</span>';
+        $('work').classList.remove('hidden');
+        await loadAll(new URLSearchParams(location.search).get('id'));
+    }
+    start();
+</script>
+</body>
+</html>
