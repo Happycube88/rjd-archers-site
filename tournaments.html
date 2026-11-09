@@ -68,24 +68,11 @@
             </div>
         </div>
   
-        <!-- Upcoming Club Events & Ianseo Links -->
+        <!-- Upcoming Club Events (read from the club database) -->
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
             <h2 class="text-2xl font-bold text-slate-900">Upcoming RJD Archers Events</h2>
-            
-            <div class="border-b border-slate-100 pb-4 space-y-2">
-                <h3 class="font-bold text-lg text-slate-800">RJD Archers Club Tournament</h3>
-                <p class="text-sm text-slate-500">Date: 28th January 2027</p>
-                <div class="flex gap-2 pt-2">
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-semibold">Entry Form Available</span>
-                </div>
-            </div>
-            <div class="border-b border-slate-100 pb-4 space-y-2">
-                <h3 class="font-bold text-lg text-slate-800">RJD Archers Winter Portsmouth (UKRS)</h3>
-                <p class="text-sm text-slate-500">Date: 28th February 2027</p>
-                <div class="flex gap-2 pt-2">
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-semibold">Entry Form Available</span>
-                </div>
-            </div>
+            <p class="text-sm text-slate-600">Members, registered guests and parents can now enter online. Archers from other clubs: use the organiser's email on the event page, or the downloadable form below.</p>
+            <div id="upcoming" class="space-y-4"><p class="text-sm text-slate-500">Loading events…</p></div>
         </div>
 
         <!-- Tournament Entry Forms Download Section -->
@@ -163,5 +150,27 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/auth-status.js"></script>
+<script>
+(function () {
+    const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const box = document.getElementById('upcoming'); if (!box) return;
+    const sb = supabase.createClient('https://onepmhddrqmvhyhagkth.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw');
+    const gb = d => d ? new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    const today = new Date().toISOString().slice(0, 10);
+    sb.from('tournaments').select('id,name,event_date,venue,rounds,closing_date,organiser_name,organiser_email,fee_junior,fee_adult').gte('event_date', today).order('event_date').then(({ data, error }) => {
+        if (error || !data || !data.length) { box.innerHTML = '<p class="text-sm text-slate-500">No events are open for entry right now. Check back soon.</p>'; return; }
+        box.innerHTML = data.map(t => {
+            const closed = t.closing_date && t.closing_date < today;
+            return `<div class="border-b border-slate-100 pb-4 space-y-1">
+                <h3 class="font-bold text-lg text-slate-800">${esc(t.name)}</h3>
+                <p class="text-sm text-slate-500">${esc(gb(t.event_date))}, ${esc(t.venue)}</p>
+                <p class="text-sm text-slate-500">Round: ${esc((t.rounds || []).join(' / '))}. Fees: juniors £${Number(t.fee_junior).toFixed(2)}, adults £${Number(t.fee_adult).toFixed(2)}. Closing date: ${esc(gb(t.closing_date))}</p>
+                <div class="pt-2">${closed ? '<span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-semibold">Entries closed</span>'
+                  : `<a href="/db/tournament-enter.html?t=${encodeURIComponent(t.id)}" class="bg-green-100 text-green-800 text-xs px-3 py-1.5 rounded font-semibold hover:bg-green-200">Enter online</a>`}
+                  ${t.organiser_email ? `<span class="text-xs text-slate-500 ml-2">Organiser: ${esc(t.organiser_name)}, ${esc(t.organiser_email)}</span>` : ''}</div></div>`;
+        }).join('');
+    });
+})();
+</script>
 </body>
 </html>
