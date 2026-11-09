@@ -61,7 +61,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="text-sm">Type
                         <select id="e_membertype" class="w-full border border-slate-300 p-2 rounded mt-1">
-                            <option value="beginner">Beginner</option><option value="member">Member</option><option value="parent">Parent / guardian only</option>
+                            <option value="beginner">Beginner</option><option value="member">Member</option><option value="guest">Guest from another club</option><option value="parent">Parent / guardian only</option>
                         </select>
                     </label>
                     <label class="text-sm">Fee category
@@ -69,6 +69,7 @@
                             <option value="">Automatic</option><option>Senior</option><option>Junior</option><option>Concessionary</option>
                         </select>
                     </label>
+                    <label class="text-sm">Home club (guests) <input id="e_home_club" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
                     <label class="text-sm">Archery GB number <input id="e_archerygbnum" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
                     <label class="text-sm">Date joined <input id="e_datejoinedclub" type="date" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
                     <label class="text-sm">Coach level (0 to 4) <input id="e_coachlevel" type="number" min="0" max="4" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
@@ -142,7 +143,7 @@
     const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
     const isUnder18 = dob => { if (!dob) return false; const d = new Date(); d.setFullYear(d.getFullYear() - 18); return new Date(dob) > d; };
     const age = dob => dob ? Math.floor((Date.now() - new Date(dob)) / 31557600000) : '?';
-    const TEXT = ['title','name','mobile','address1','town','county','postcode','archerygbnum','next_of_kin_name','next_of_kin_phone','fee_category','course_source','course_note','membertype'];
+    const TEXT = ['title','name','mobile','address1','town','county','postcode','archerygbnum','next_of_kin_name','next_of_kin_phone','fee_category','course_source','course_note','membertype','home_club'];
     const DATES = ['dob','datejoinedclub','course_date'];
     const BOOLS = ['firstaider','flagfor_allowphotos','chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','recordkeeper'];
     let people = [], links = [], current = null;

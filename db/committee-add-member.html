@@ -13,7 +13,7 @@
     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <h1 class="text-2xl font-bold text-purple-950">Committee: Add Members</h1>
         <p class="text-sm text-slate-600 mt-1">Add people who have paid for the beginners course, or members who already have a course certificate from elsewhere. Under-18s need a parent or guardian, who gets their own login.</p>
-        <p class="text-sm mt-2"><a class="underline text-purple-700" href="/db/committee-members.html">Member list</a> · <a class="underline text-purple-700" href="/db/committee-edit-member.html">Edit people</a> · <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-add-member.html">2FA</a></p>
+        <p class="text-sm mt-2"><a class="underline text-purple-700" href="/db/committee-members.html">Member list</a> · <a class="underline text-purple-700" href="/db/committee-edit-member.html">Edit people</a> · <a class="underline text-purple-700" href="/db/committee-guests.html">One-off shoot guests</a> · <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-add-member.html">2FA</a></p>
         <div id="gate" class="mt-4 text-sm"></div>
     </div>
 
@@ -38,6 +38,7 @@
             <div class="flex flex-wrap gap-4 text-sm">
                 <label><input type="radio" name="membertype" value="beginner" checked> Beginner (on the course)</label>
                 <label><input type="radio" name="membertype" value="member"> Member (has course proof)</label>
+                <label><input type="radio" name="membertype" value="guest"> Guest from another club (registered, can book club nights)</label>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label class="text-sm">Full name <input id="fName" required maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
@@ -55,6 +56,11 @@
                 </label>
                 <label class="text-sm">Next of kin name <input id="fNok" required maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
                 <label class="text-sm">Next of kin phone <input id="fNokPhone" type="tel" required maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            </div>
+
+            <div id="guestBox" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-sky-50 rounded border border-sky-100">
+                <label class="text-sm">Home club <input id="fHomeClub" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <p class="text-xs text-slate-600 self-end">Guests need no beginners-course proof. They get their own sign-in and can book club nights like a member.</p>
             </div>
 
             <div id="courseBox" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-purple-50 rounded border border-purple-100">
@@ -143,7 +149,7 @@
         $('fEmail').required = !junior;
     }
     $('fDob').addEventListener('input', syncForm);
-    function showCourseBox() { $('courseBox').classList.toggle('hidden', document.querySelector('input[name=membertype]:checked').value !== 'member'); }
+    function showCourseBox() { const t = document.querySelector('input[name=membertype]:checked').value; $('courseBox').classList.toggle('hidden', t !== 'member'); $('guestBox').classList.toggle('hidden', t !== 'guest'); }
     document.querySelectorAll('input[name=membertype]').forEach(r => r.addEventListener('change', showCourseBox));
 
     $('addForm').addEventListener('submit', async e => {
@@ -154,7 +160,8 @@
             mobile: $('fMobile').value.trim(), address1: $('fAddress').value.trim(), town: $('fTown').value.trim(), postcode: $('fPostcode').value.trim(),
             fee_category: $('fFee').value, next_of_kin_name: $('fNok').value.trim(), next_of_kin_phone: $('fNokPhone').value.trim(),
             allow_photos: $('fPhotos').checked, course_source: type === 'member' ? $('fCourseSrc').value : '',
-            course_note: type === 'member' ? $('fCourseNote').value.trim() : '' };
+            course_note: type === 'member' ? $('fCourseNote').value.trim() : '',
+            home_club: type === 'guest' ? $('fHomeClub').value.trim() : '' };
         const g = isUnder18(m.dob) ? readGuardians() : [];
         if (isUnder18(m.dob) && !g.length) return say('Under-18s need at least one parent or guardian.', true);
         const { error } = await sb.rpc('committee_add_member', { p_member: m, p_guardians: g, p_enquiry_id: $('enquiryId').value ? +$('enquiryId').value : null });

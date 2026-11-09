@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One-off Shoot Guests | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-6 font-sans text-slate-800">
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h1 class="text-2xl font-bold text-purple-950">Committee: One-off Shoot Guests</h1>
+        <p class="text-sm text-slate-600 mt-1">Visitors from other clubs at a single shoot. They are only a name on a list: no sign-in, no member record. If a visitor wants to come to club nights regularly, add them as a <b>Guest from another club</b> on the Add People page instead.</p>
+        <p class="text-sm mt-2"><a class="underline text-purple-700" href="/db/committee-members.html">Member list</a> · <a class="underline text-purple-700" href="/db/committee-add-member.html">Add people</a> · <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-guests.html">Enter 2FA code</a></p>
+        <div id="gate" class="mt-4 text-sm"></div>
+    </div>
+
+    <div id="work" class="hidden space-y-6">
+        <form id="addForm" class="bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">Add a guest</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="text-sm">Name <input id="gName" required maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Their club <input id="gClub" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Bow type <select id="gBow" class="w-full border border-slate-300 p-2 rounded mt-1"><option value="">Not stated</option><option>Recurve</option><option>Compound</option><option>Longbow</option><option>Barebow</option></select></label>
+                <label class="text-sm">Archery GB number <input id="gGb" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Date of the shoot <input id="gDate" type="date" required class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Event <input id="gEvent" maxlength="120" placeholder="e.g. Open day, club championship" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm sm:col-span-2">Notes <input id="gNotes" maxlength="300" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            </div>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Add guest (needs 2FA)</button>
+        </form>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">Guests so far</h2>
+            <input id="filter" placeholder="Filter by name, club or event…" class="w-full border border-slate-300 p-2 rounded text-sm">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-2">Date</th><th class="p-2">Name</th><th class="p-2">Club</th><th class="p-2">Bow</th><th class="p-2">GB no.</th><th class="p-2">Event</th><th class="p-2"></th></tr></thead>
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const gb = d => d ? new Date(d).toLocaleDateString('en-GB') : '';
+    let all = [];
+
+    function render() {
+        const q = $('filter').value.trim().toLowerCase();
+        const rows = all.filter(r => !q || [r.name, r.club, r.event].join(' ').toLowerCase().includes(q));
+        $('rows').innerHTML = rows.map(r => `<tr class="border-b border-slate-100">
+            <td class="p-2">${esc(gb(r.shoot_date))}</td><td class="p-2 font-medium">${esc(r.name)}</td><td class="p-2">${esc(r.club)}</td>
+            <td class="p-2">${esc(r.bow_style)}</td><td class="p-2">${esc(r.archerygbnum)}</td><td class="p-2">${esc(r.event)}</td>
+            <td class="p-2"><button type="button" class="del text-red-600 underline" data-id="${esc(r.id)}">Remove</button></td></tr>`).join('')
+            || '<tr><td colspan="7" class="p-3 text-center text-slate-500">No guests yet.</td></tr>';
+    }
+    $('filter').addEventListener('input', render);
+    async function load() {
+        const { data, error } = await sb.from('shoot_guests').select('*').order('shoot_date', { ascending: false }).limit(1000);
+        if (error) return say(error.message, true);
+        all = data || []; render();
+    }
+    $('addForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const v = id => { const x = $(id).value.trim(); return x === '' ? null : x; };
+        const o = { name: v('gName'), club: v('gClub'), bow_style: v('gBow'), archerygbnum: v('gGb'), shoot_date: $('gDate').value, event: v('gEvent'), notes: v('gNotes') };
+        if (!o.name || !o.shoot_date) return say('A name and the date of the shoot are needed.', true);
+        const { error } = await sb.from('shoot_guests').insert(o);
+        if (error) return say(/row-level security|42501/.test(error.message + error.code) ? 'Committee with 2FA only: enter your 2FA code first.' : error.message, true);
+        say(o.name + ' added.'); const d = $('gDate').value; e.target.reset(); $('gDate').value = d; load();
+    });
+    $('rows').addEventListener('click', async e => {
+        const id = e.target.dataset.id; if (!id || !e.target.classList.contains('del')) return;
+        if (!confirm('Remove this guest from the list?')) return;
+        const { data, error } = await sb.from('shoot_guests').delete().eq('id', id).select('id');
+        if (error) return say(error.message, true);
+        if (!data || !data.length) return say('Nothing was removed. Enter your 2FA code first.', true);
+        say('Removed.'); load();
+    });
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        const gate = $('gate');
+        if (!session) {
+            gate.innerHTML = '<button id="loginBtn" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold">Committee login</button>';
+            $('loginBtn').onclick = async () => {
+                const email = prompt('Committee email address:'); if (!email) return;
+                const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+                say(error ? error.message : 'Check your email for the sign-in link.', !!error);
+            };
+            return;
+        }
+        const { data: isC } = await sb.rpc('is_committee');
+        if (isC !== true) { gate.textContent = 'This page is for committee members only.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        gate.innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed to add or remove anyone.</span>';
+        $('work').classList.remove('hidden');
+        $('gDate').value = new Date().toISOString().slice(0, 10);
+        load();
+    }
+    start();
+</script>
+</body>
+</html>

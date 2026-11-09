@@ -19,7 +19,7 @@
 
             <div id="directorySection" class="hidden space-y-4">
                 <div class="overflow-x-auto">
-                    <p class="text-sm"><a class="underline text-purple-700" href="/db/committee-add-member.html">Add members / handle enquiries</a> · <a class="underline text-purple-700" href="/db/committee-edit-member.html">Edit people</a></p>
+                    <p class="text-sm"><a class="underline text-purple-700" href="/db/committee-add-member.html">Add members / handle enquiries</a> · <a class="underline text-purple-700" href="/db/committee-edit-member.html">Edit people</a> · <a class="underline text-purple-700" href="/db/committee-guests.html">One-off shoot guests</a></p>
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr class="bg-slate-100 border-b border-slate-200">
@@ -64,7 +64,7 @@
                 document.getElementById('committeeAuth').classList.add('hidden');
                 document.getElementById('directorySection').classList.remove('hidden');
 
-                const { data, error } = await supabaseClient.from('members').select('id, name, dob, archerygbnum, mobile, email, membertype, fee_category, next_of_kin_name, next_of_kin_phone').order('name');
+                const { data, error } = await supabaseClient.from('members').select('id, home_club, name, dob, archerygbnum, mobile, email, membertype, fee_category, next_of_kin_name, next_of_kin_phone').order('name');
                 const tbody = document.getElementById('memberTableBody');
                 
                 if (error) {
@@ -78,7 +78,7 @@
                         <td class="p-3 font-medium">${esc(m.name)}</td>
                         <td class="p-3">${esc(age)} (${esc(m.dob || 'Unknown')})</td>
                         <td class="p-3">${esc(m.archerygbnum || 'Pending')}</td>
-                        <td class="p-3">${esc(m.membertype)}</td>
+                        <td class="p-3">${esc(m.membertype)}${m.membertype === 'guest' && m.home_club ? ' <span class="text-xs text-slate-500">(' + esc(m.home_club) + ')</span>' : ''}</td>
                         <td class="p-3">${esc(m.fee_category || '')}</td>
                         <td class="p-3">${m.membertype === 'parent' ? '' : (m.next_of_kin_name ? esc(m.next_of_kin_name) + ' ' + esc(m.next_of_kin_phone) : '<span class="text-red-600">missing</span>')}</td>
                         <td class="p-3">${esc(m.mobile || '')}</td>
