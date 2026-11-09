@@ -147,6 +147,9 @@
         <!-- Signed-in members: 252 progress -->
         <div id="p252Box" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
             <h2 class="text-xl font-bold text-slate-900">My 252 Progress</h2>
+            <label id="forWrap" class="hidden block text-sm text-slate-700">Scores for
+                <select id="p252For" class="border border-slate-300 rounded p-2 text-sm ml-2"></select>
+            </label>
             <p class="text-sm text-slate-500">Add each 36-arrow score. The record keeper checks it against the signed score sheet; until then it shows “Awaiting check”. A badge needs <b>two verified</b> scores at or above the target at the same distance.</p>
             <form id="p252Form" class="space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -189,7 +192,7 @@
             <h3 class="text-lg font-bold text-purple-950">Badges earned (two verified scores at the target)</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
-                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-3">Archer</th><th class="p-3">Bow</th><th class="p-3">Distance</th><th class="p-3">Earned on</th></tr></thead>
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-3">Archer</th><th class="p-3">Bow</th><th class="p-3">Distance</th><th class="p-3">Earned on</th><th class="p-3">Badge given</th></tr></thead>
                     <tbody id="kBadgeRows"></tbody>
                 </table>
             </div>
@@ -208,7 +211,7 @@
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const $ = id => document.getElementById(id);
-        let all = [], rounds = [], isKeeper = false, has2fa = false, me = null;
+        let all = [], rounds = [], isKeeper = false, has2fa = false, me = null, kids = [], forId = null;
 
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const fmtDate = r => r.shot_date ? new Date(r.shot_date).toLocaleDateString('en-GB') : (r.date_text || '');
@@ -287,7 +290,7 @@
         async function refreshAuth() {
             const { data: { session } } = await sb.auth.getSession();
             const bar = $('authBar');
-            isKeeper = false; has2fa = false; me = null;
+            isKeeper = false; has2fa = false; me = null; kids = [];
             if (!session) {
                 bar.innerHTML = `<button id="loginBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold">Member / Committee Login</button>`;
                 $('loginBtn').onclick = async () => {
@@ -306,6 +309,18 @@
                 has2fa = !!a && a.currentLevel === 'aal2';
                 const { data: m } = await sb.from('members').select('id,name').eq('auth_id', session.user.id).maybeSingle();
                 me = m;
+                if (me) {
+                    const { data: l } = await sb.from('member_guardians').select('child_id').eq('guardian_member_id', me.id);
+                    const ids = (l || []).map(x => x.child_id);
+                    if (ids.length) { const { data: k } = await sb.from('members').select('id,name').in('id', ids).order('name'); kids = k || []; }
+                }
+            }
+            if (me) {
+                const people = [{ id: me.id, name: me.name + ' (me)' }, ...kids];
+                if (!people.some(x => x.id === forId)) forId = me.id;
+                $('p252For').innerHTML = people.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+                $('p252For').value = forId;
+                $('forWrap').classList.toggle('hidden', !kids.length);
             }
             document.querySelectorAll('.committee-only').forEach(el => el.classList.toggle('hidden', !isKeeper));
             $('editBox').classList.toggle('hidden', !isKeeper);
@@ -396,15 +411,19 @@
 
         async function load252() {
             const { data, error } = await sb.from('member_252_progress').select('*')
-                .eq('member_id', me.id).order('shoot_date', { ascending: false });
+                .eq('member_id', forId).order('shoot_date', { ascending: false });
             if (error) return say(error.message, true);
+            const { data: aw } = await sb.from('badge_252_awards').select('bow_style,distance_yds,awarded_on').eq('member_id', forId);
+            const given = {}; (aw || []).forEach(a => given[`${String(a.bow_style).toLowerCase()}|${a.distance_yds}`] = a.awarded_on);
             const rows = data || [], prog = {};
             rows.forEach(r => {
                 const m = minFor(r.bow_style, r.distance_yds); r._min = m; r._q = m != null && r.score >= m;
                 if (m != null) { const k = `${String(r.bow_style).toLowerCase()}|${r.distance_yds}`; prog[k] = prog[k] || { bow: r.bow_style, d: r.distance_yds, v: 0, p: 0 }; if (r._q) { r.verified ? prog[k].v++ : prog[k].p++; } }
             });
             $('p252Badges').innerHTML = Object.values(prog).filter(x => x.v + x.p).sort((a, b) => a.d - b.d).map(x => x.v >= 2
-                ? `<span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">🏅 ${esc(x.bow)} ${x.d} yds: badge earned</span>`
+                ? (given[`${String(x.bow).toLowerCase()}|${x.d}`]
+                    ? `<span class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-semibold">🏅 ${esc(x.bow)} ${x.d} yds: badge given ${esc(gbDate(given[`${String(x.bow).toLowerCase()}|${x.d}`]))}</span>`
+                    : `<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-sm font-semibold">🏅 ${esc(x.bow)} ${x.d} yds: badge earned, ask the record keeper for it</span>`)
                 : `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm">${esc(x.bow)} ${x.d} yds: ${x.v} of 2 verified${x.p ? ` (+${x.p} awaiting check)` : ''}</span>`).join('');
             $('p252Rows').innerHTML = rows.map(r => `<tr class="border-b border-slate-100">
                 <td class="p-3">${esc(gbDate(r.shoot_date))}</td><td class="p-3">${esc(r.bow_style)}</td>
@@ -418,7 +437,7 @@
         $('p252Form').addEventListener('submit', async e => {
             e.preventDefault();
             const f = e.target.elements;
-            const o = { member_id: me.id, shoot_date: f.shoot_date.value, bow_style: f.bow_style.value,
+            const o = { member_id: forId, shoot_date: f.shoot_date.value, bow_style: f.bow_style.value,
                         distance_yds: +f.distance_yds.value, score: +f.score.value, round: f.round.value, notes: f.notes.value.trim() || null };
             if (!(o.score >= 0 && o.score <= 324)) return say('Score must be between 0 and 324 (36 arrows, 9 max each).', true);
             const { error } = await sb.from('member_252_progress').insert(o);
@@ -442,9 +461,18 @@
                 </td></tr>`).join('')
                 || `<tr><td colspan="8" class="p-3 text-center text-slate-500">No 252 entries yet.</td></tr>`;
             const { data: bd } = await sb.rpc('list_252_badges_for_keeper');
-            $('kBadgeRows').innerHTML = (bd || []).map(r => `<tr class="border-b border-slate-100"><td class="p-3">${esc(r.member_name)}</td><td class="p-3">${esc(r.bow_style)}</td><td class="p-3">${esc(r.distance_yds)} yds</td><td class="p-3">${esc(gbDate(r.earned_on))}</td></tr>`).join('')
-                || `<tr><td colspan="4" class="p-3 text-center text-slate-500">No badges earned yet.</td></tr>`;
+            $('kBadgeRows').innerHTML = (bd || []).map(r => `<tr class="border-b border-slate-100"><td class="p-3">${esc(r.member_name)}</td><td class="p-3">${esc(r.bow_style)}</td><td class="p-3">${esc(r.distance_yds)} yds</td><td class="p-3">${esc(gbDate(r.earned_on))}</td>
+                <td class="p-3 whitespace-nowrap">${r.awarded_on ? `✅ ${esc(gbDate(r.awarded_on))} <button data-b="undo" data-m="${esc(r.member_id)}" data-bow="${esc(r.bow_style)}" data-d="${esc(r.distance_yds)}" class="text-slate-500 underline ml-2">Undo</button>`
+                    : `<button data-b="give" data-m="${esc(r.member_id)}" data-bow="${esc(r.bow_style)}" data-d="${esc(r.distance_yds)}" class="text-purple-700 underline">Mark badge given</button>`}</td></tr>`).join('')
+                || `<tr><td colspan="5" class="p-3 text-center text-slate-500">No badges earned yet.</td></tr>`;
         }
+        $('kBadgeRows').addEventListener('click', async e => {
+            const b = e.target.dataset.b; if (!b) return;
+            const { error } = await sb.rpc('keeper_set_badge_award', { p_member: e.target.dataset.m, p_bow: e.target.dataset.bow, p_dist: +e.target.dataset.d, p_awarded: b === 'give', p_note: null });
+            if (error) return say(error.code === '42501' ? 'Record keeper with 2FA only: enter your 2FA code first.' : error.message, true);
+            say(b === 'give' ? 'Marked as given.' : 'Marked as not given.'); loadKeeper252(); if (me) load252();
+        });
+        $('p252For').addEventListener('change', e => { forId = e.target.value; update252Hint(); load252(); });
         $('k252Rows').addEventListener('click', async e => {
             const k = e.target.dataset.k, id = e.target.dataset.id;
             if (!k) return;
