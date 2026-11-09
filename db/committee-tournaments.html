@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Organiser | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-6xl mx-auto space-y-5">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h1 class="text-2xl font-bold text-purple-950">Committee: Tournaments</h1>
+        <p class="text-sm text-slate-600 mt-1">Set up an event, confirm places, track payments, key in entries from emailed or photographed forms, and download the entry list.</p>
+        <p class="text-sm mt-2"><a class="underline text-purple-700" href="/db/committee-members.html">Member list</a> · <a class="underline text-purple-700" href="/db/committee-guests.html">One-off shoot guests</a> · <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-tournaments.html">Enter 2FA code</a></p>
+        <div id="gate" class="mt-3 text-sm"></div>
+    </div>
+
+    <div id="work" class="hidden space-y-5">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-end gap-3">
+            <label class="text-sm grow">Tournament <select id="pick" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+            <button id="newBtn" type="button" class="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded text-sm font-semibold">New tournament</button>
+        </div>
+
+        <form id="tForm" class="bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-3">
+            <h2 id="tFormTitle" class="text-lg font-bold text-purple-950">Tournament details</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="text-sm sm:col-span-2">Name <input id="tName" required maxlength="150" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Date <input id="tDate" type="date" required class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm sm:col-span-2">Venue <input id="tVenue" maxlength="300" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Closing date <input id="tClose" type="date" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Rounds (comma separated) <input id="tRounds" required placeholder="Vegas, Worcester" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Sessions (comma separated) <input id="tSess" value="A, B" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Maximum entries (blank = none) <input id="tMax" type="number" min="1" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Junior fee £ <input id="tFeeJ" type="number" step="0.01" min="0" value="12" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Adult fee £ <input id="tFeeA" type="number" step="0.01" min="0" value="15" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Payment reference letter(s) <input id="tRef" maxlength="20" placeholder="P, WA, V or W" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Organiser name <input id="tOrg" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Organiser email <input id="tOrgMail" maxlength="254" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Organiser phone <input id="tOrgTel" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            </div>
+            <label class="text-sm block">Format, timings and awards (shown on the entry page)
+                <textarea id="tFormat" rows="5" class="w-full border border-slate-300 p-2 rounded mt-1"></textarea></label>
+            <label class="text-sm block">Payment details (bank account etc.). Shown only to signed-in people whose place is confirmed. Not stored in the website files.
+                <textarea id="tPay" rows="3" class="w-full border border-slate-300 p-2 rounded mt-1"></textarea></label>
+            <label class="flex gap-2 text-sm"><input type="checkbox" id="tPub"> Published (visible on the tournaments page and open for entries)</label>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Save tournament (needs 2FA)</button>
+            <a id="entryLink" class="hidden text-sm underline text-purple-700 ml-3" target="_blank">Open the public entry page</a>
+        </form>
+
+        <div id="entriesBox" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3 hidden">
+            <div class="flex flex-wrap justify-between gap-2 items-center">
+                <h2 class="text-lg font-bold text-purple-950">Entries <span id="counts" class="text-sm font-normal text-slate-600"></span></h2>
+                <button id="csvBtn" type="button" class="bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded text-sm font-semibold">Download list (CSV)</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-2">Archer</th><th class="p-2">Club</th><th class="p-2">Bow</th><th class="p-2">Round / session</th><th class="p-2">Group</th><th class="p-2">Fee</th><th class="p-2">Status</th><th class="p-2">Paid</th><th class="p-2">Notes</th></tr></thead>
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <form id="addForm" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3 hidden">
+            <h2 class="text-lg font-bold text-purple-950">Add an entry (from an emailed or photographed form)</h2>
+            <label class="text-sm block">Club member or registered guest (leave as "Outside archer" for anyone else)
+                <select id="aWho" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="text-sm">Forename <input id="aFore" required class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Surname <input id="aSur" required class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Title <input id="aTitle" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Club (outside archers) <input id="aClub" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Date of birth (outside archers) <input id="aDob" type="date" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">AGB number <input id="aAgb" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Female or Open <select id="aCat" class="w-full border border-slate-300 p-2 rounded mt-1"><option>Open</option><option>Female</option></select></label>
+                <label class="text-sm">Hand <select id="aHand" class="w-full border border-slate-300 p-2 rounded mt-1"><option>RH</option><option>LH</option></select></label>
+                <label class="text-sm">Bow <select id="aBow" class="w-full border border-slate-300 p-2 rounded mt-1"><option>Recurve</option><option>Compound</option><option>Longbow</option><option>Barebow</option></select></label>
+                <label class="text-sm">Round <select id="aRound" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+                <label class="text-sm">Session <select id="aSess" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+                <label class="text-sm">Special needs <input id="aNeeds" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Contact phone <input id="aPhone" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Contact email <input id="aMail" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            </div>
+            <label class="flex gap-2 text-sm"><input type="checkbox" id="aDrug"> Drug-testing consent signed on the form (parent or guardian for a junior)</label>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Add entry (needs 2FA)</button>
+        </form>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const need2fa = e => e.code === '42501' || /row-level security/.test(e.message);
+    let tours = [], cur = null, entries = [], people = [];
+    const list = s => s.split(',').map(x => x.trim()).filter(Boolean);
+    const nz = s => { s = String(s ?? '').trim(); return s === '' ? null : s; };
+
+    function showT() {
+        const t = cur || { name: '', event_date: '', venue: '', rounds: [], sessions: ['A', 'B'], fee_junior: 12, fee_adult: 15 };
+        $('tFormTitle').textContent = cur ? 'Tournament details' : 'New tournament';
+        $('tName').value = t.name; $('tDate').value = t.event_date || ''; $('tVenue').value = t.venue || ''; $('tClose').value = t.closing_date || '';
+        $('tRounds').value = (t.rounds || []).join(', '); $('tSess').value = (t.sessions || []).join(', '); $('tMax').value = t.max_entries || '';
+        $('tFeeJ').value = t.fee_junior; $('tFeeA').value = t.fee_adult; $('tRef').value = t.ref_code || '';
+        $('tOrg').value = t.organiser_name || ''; $('tOrgMail').value = t.organiser_email || ''; $('tOrgTel').value = t.organiser_phone || '';
+        $('tFormat').value = t.format_notes || ''; $('tPay').value = t.payment_info || ''; $('tPub').checked = !!t.published;
+        const l = $('entryLink'); if (cur) { l.href = '/db/tournament-enter.html?t=' + cur.id; l.classList.remove('hidden'); } else l.classList.add('hidden');
+        $('entriesBox').classList.toggle('hidden', !cur); $('addForm').classList.toggle('hidden', !cur);
+        if (cur) {
+            $('aRound').innerHTML = cur.rounds.map(r => `<option>${esc(r)}</option>`).join('');
+            $('aSess').innerHTML = cur.sessions.map(r => `<option>${esc(r)}</option>`).join('');
+            loadEntries();
+        }
+    }
+    async function loadTours(keep) {
+        const { data, error } = await sb.from('tournaments').select('*').order('event_date');
+        if (error) return say(error.message, true);
+        tours = data || [];
+        $('pick').innerHTML = tours.map(t => `<option value="${esc(t.id)}">${esc(new Date(t.event_date).toLocaleDateString('en-GB'))}: ${esc(t.name)}${t.published ? '' : ' (not published)'}</option>`).join('');
+        if (keep) $('pick').value = keep;
+        cur = tours.find(t => t.id === $('pick').value) || null; showT();
+    }
+    $('pick').addEventListener('change', () => { cur = tours.find(t => t.id === $('pick').value); showT(); });
+    $('newBtn').addEventListener('click', () => { cur = null; showT(); window.scrollTo(0, 0); });
+
+    $('tForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const o = { name: $('tName').value.trim(), event_date: $('tDate').value, venue: nz($('tVenue').value), closing_date: nz($('tClose').value),
+            rounds: list($('tRounds').value), sessions: list($('tSess').value), max_entries: nz($('tMax').value) && Number($('tMax').value),
+            fee_junior: Number($('tFeeJ').value), fee_adult: Number($('tFeeA').value), ref_code: nz($('tRef').value),
+            organiser_name: nz($('tOrg').value), organiser_email: nz($('tOrgMail').value), organiser_phone: nz($('tOrgTel').value),
+            format_notes: nz($('tFormat').value), payment_info: nz($('tPay').value), published: $('tPub').checked };
+        if (!o.rounds.length || !o.sessions.length) return say('Add at least one round and one session.', true);
+        const q = cur ? sb.from('tournaments').update(o).eq('id', cur.id).select('id') : sb.from('tournaments').insert(o).select('id');
+        const { data, error } = await q;
+        if (error) return say(need2fa(error) ? 'Committee with 2FA only: enter your 2FA code first.' : error.message, true);
+        if (!data || !data.length) return say('Nothing was saved. Enter your 2FA code first.', true);
+        say('Saved.'); loadTours(data[0].id);
+    });
+
+    async function loadEntries() {
+        const { data, error } = await sb.from('tournament_entries').select('*').eq('tournament_id', cur.id).order('created_at');
+        if (error) return say(error.message, true);
+        entries = data || []; renderEntries();
+    }
+    function renderEntries() {
+        const live = entries.filter(e => e.status !== 'withdrawn');
+        const conf = live.filter(e => e.status === 'confirmed').length, paid = live.filter(e => e.paid).length;
+        $('counts').textContent = `${live.length} entries, ${conf} confirmed, ${paid} paid` + (cur.max_entries ? ` (max ${cur.max_entries})` : '');
+        $('rows').innerHTML = entries.map(e => `<tr class="border-b border-slate-100 ${e.status === 'withdrawn' ? 'opacity-50' : ''}">
+            <td class="p-2 font-medium">${esc(e.forename)} ${esc(e.surname)}<div class="text-xs text-slate-500">${esc(e.agb_no)}${e.special_needs ? ' · needs: ' + esc(e.special_needs) : ''}</div></td>
+            <td class="p-2">${esc(e.club)}</td><td class="p-2">${esc(e.bow_style)} ${esc(e.hand)} ${esc(e.category)}</td>
+            <td class="p-2">${esc(e.round_entered)} / ${esc(e.session)}${e.interest_double ? ' (double?)' : ''}</td><td class="p-2">${esc(e.age_group)}</td><td class="p-2">£${Number(e.fee).toFixed(2)}</td>
+            <td class="p-2"><select class="st border border-slate-300 rounded p-1" data-id="${esc(e.id)}">${['requested','confirmed','waitlist','withdrawn'].map(s => `<option ${s === e.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+            <td class="p-2"><input type="checkbox" class="pd" data-id="${esc(e.id)}" ${e.paid ? 'checked' : ''}> <input class="pm border border-slate-300 rounded p-1 w-20" data-id="${esc(e.id)}" placeholder="method" value="${esc(e.payment_method || '')}"></td>
+            <td class="p-2 text-xs">${esc(e.contact_phone)} ${esc(e.contact_email)}</td></tr>`).join('') || '<tr><td colspan="9" class="p-3 text-center text-slate-500">No entries yet.</td></tr>';
+    }
+    async function patch(id, o) {
+        const { data, error } = await sb.from('tournament_entries').update(o).eq('id', id).select('id');
+        if (error || !data || !data.length) { say(error && !need2fa(error) ? error.message : 'Committee with 2FA only: enter your 2FA code first.', true); await loadEntries(); return; }
+        const e = entries.find(x => x.id === id); Object.assign(e, o); renderEntries(); say('Saved.');
+    }
+    $('rows').addEventListener('change', e => {
+        const id = e.target.dataset.id; if (!id) return;
+        if (e.target.classList.contains('st')) patch(id, { status: e.target.value });
+        else if (e.target.classList.contains('pd')) patch(id, { paid: e.target.checked });
+        else if (e.target.classList.contains('pm')) patch(id, { payment_method: nz(e.target.value) });
+    });
+
+    $('csvBtn').addEventListener('click', () => {
+        const cols = ['title','forename','surname','category','hand','agb_no','club','bow_style','session','special_needs','dob','age_group','ianseo_phone','round_entered','interest_double','will_score_for_disabled','contact_name','contact_phone','contact_email','contact_address','fee','status','paid','payment_method'];
+        const q = v => '"' + String(v ?? '').replace(/"/g, '""').replace(/^([=+\-@])/, "'$1") + '"';
+        const csv = [cols.join(',')].concat(entries.filter(e => e.status !== 'withdrawn').map(e => cols.map(c => q(e[c])).join(','))).join('\r\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        a.download = (cur.name || 'entries').replace(/[^a-z0-9]+/gi, '-') + '-entries.csv'; a.click();
+    });
+
+    $('aWho').addEventListener('change', () => {
+        const p = people.find(x => x.id === $('aWho').value);
+        if (!p) return;
+        const parts = (p.name || '').trim().split(/\s+/);
+        $('aFore').value = parts.slice(0, -1).join(' ') || parts[0]; $('aSur').value = parts.length > 1 ? parts[parts.length - 1] : '';
+        $('aTitle').value = p.title || ''; $('aAgb').value = p.archerygbnum || ''; $('aPhone').value = p.mobile || '';
+    });
+    $('addForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const who = $('aWho').value || null, v = id => $(id).value.trim();
+        if (!$('aDrug').checked) return say('Tick the drug-testing consent (it is on the signed form).', true);
+        const o = { title: v('aTitle'), forename: v('aFore'), surname: v('aSur'), category: $('aCat').value, hand: $('aHand').value, agb_no: v('aAgb'),
+            bow_style: $('aBow').value, session: $('aSess').value, round_entered: $('aRound').value, special_needs: v('aNeeds'), drug_consent: true,
+            contact_phone: v('aPhone'), contact_email: v('aMail') };
+        if (!who) { o.club = v('aClub'); o.dob = $('aDob').value; if (!o.club || !o.dob) return say('Outside archers need a club and date of birth.', true); }
+        const { error } = await sb.rpc('committee_add_entry', { p_tournament: cur.id, p_member: who, p_entry: o });
+        if (error) return say(need2fa(error) ? 'Committee with 2FA only: enter your 2FA code first.' : /duplicate key/.test(error.message) ? 'That archer is already entered for this round.' : error.message, true);
+        say('Entry added.'); e.target.reset(); loadEntries();
+    });
+
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        const gate = $('gate');
+        if (!session) {
+            gate.innerHTML = '<button id="loginBtn" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold">Committee login</button>';
+            $('loginBtn').onclick = async () => {
+                const email = prompt('Committee email address:'); if (!email) return;
+                const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+                say(error ? error.message : 'Check your email for the sign-in link.', !!error);
+            };
+            return;
+        }
+        const { data: isC } = await sb.rpc('is_committee');
+        if (isC !== true) { gate.textContent = 'This page is for committee members only.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        gate.innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed to save anything.</span>';
+        const { data: m } = await sb.from('members').select('id,name,title,mobile,archerygbnum,membertype').in('membertype', ['member', 'guest']).order('name');
+        people = m || [];
+        $('aWho').innerHTML = '<option value="">Outside archer</option>' + people.map(p => `<option value="${esc(p.id)}">${esc(p.name)}${p.membertype === 'guest' ? ' (guest)' : ''}</option>`).join('');
+        $('work').classList.remove('hidden'); loadTours();
+    }
+    start();
+</script>
+</body>
+</html>

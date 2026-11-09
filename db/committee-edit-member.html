@@ -102,6 +102,7 @@
                     <label><input type="checkbox" id="e_welfarecom"> Welfare</label>
                     <label><input type="checkbox" id="e_tournamentscom"> Tournaments</label>
                     <label><input type="checkbox" id="e_recordkeeper"> Record keeper</label>
+                    <label title="Opens up and sets up club nights. Needs 4+ years from the join date."><input type="checkbox" id="e_sessionlead"> Session lead (4+ years)</label>
                 </div>
                 <p class="text-xs text-slate-600">Any of the five committee boxes gives full committee access today. There must always be at least one committee member.</p>
             </fieldset>
@@ -145,7 +146,7 @@
     const age = dob => dob ? Math.floor((Date.now() - new Date(dob)) / 31557600000) : '?';
     const TEXT = ['title','name','mobile','address1','town','county','postcode','archerygbnum','next_of_kin_name','next_of_kin_phone','fee_category','course_source','course_note','membertype','home_club'];
     const DATES = ['dob','datejoinedclub','course_date'];
-    const BOOLS = ['firstaider','flagfor_allowphotos','chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','recordkeeper'];
+    const BOOLS = ['firstaider','flagfor_allowphotos','chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','recordkeeper','sessionlead'];
     let people = [], links = [], current = null;
 
     const gaps = m => { const g = [];

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter a Tournament | RJD Archers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-3xl mx-auto space-y-5">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <p class="text-sm"><a class="underline text-purple-700" href="/tournaments.html">&larr; All tournaments</a></p>
+        <h1 id="tName" class="text-2xl font-bold text-purple-950 mt-2">Tournament entry</h1>
+        <div id="tInfo" class="text-sm text-slate-700 mt-2 space-y-1"></div>
+        <div id="gate" class="mt-4 text-sm"></div>
+    </div>
+
+    <div id="work" class="hidden space-y-5">
+        <form id="entryForm" class="bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-4">
+            <h2 class="text-lg font-bold text-purple-950">Your entry</h2>
+            <label class="text-sm block">Who is shooting?
+                <select id="who" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label class="text-sm">Title <input id="fTitle" maxlength="20" placeholder="Mr / Mrs / Ms / Miss" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Forename <input id="fFore" required maxlength="80" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Surname <input id="fSur" required maxlength="80" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Female or Open <select id="fCat" class="w-full border border-slate-300 p-2 rounded mt-1"><option>Open</option><option>Female</option></select></label>
+                <label class="text-sm">Left or right handed <select id="fHand" class="w-full border border-slate-300 p-2 rounded mt-1"><option value="RH">Right (RH)</option><option value="LH">Left (LH)</option></select></label>
+                <label class="text-sm">Archery GB number <input id="fAgb" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Bow style <select id="fBow" class="w-full border border-slate-300 p-2 rounded mt-1"><option>Recurve</option><option>Compound</option><option>Longbow</option><option>Barebow</option></select></label>
+                <label class="text-sm">Round <select id="fRound" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+                <label class="text-sm">Session <select id="fSess" class="w-full border border-slate-300 p-2 rounded mt-1"></select></label>
+            </div>
+            <label class="text-sm block">Special needs, if any (e.g. WCH, stool, VI). Please also talk to the organiser.
+                <input id="fNeeds" maxlength="300" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label class="text-sm">Contact name <input id="fCName" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Contact phone (mobile preferred) <input id="fCPhone" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Contact email <input id="fCMail" type="email" maxlength="254" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+                <label class="text-sm">Contact address <input id="fCAddr" maxlength="300" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            </div>
+            <div class="space-y-2 text-sm">
+                <label class="flex gap-2"><input type="checkbox" id="fPhone"> I would like to use the Ianseo phone app for scoring</label>
+                <label class="flex gap-2"><input type="checkbox" id="fDouble"> I am interested in a double round, if available</label>
+                <label class="flex gap-2"><input type="checkbox" id="fScore" checked> I am prepared to collect and score arrows for disabled archers</label>
+                <label class="flex gap-2"><input type="checkbox" id="fDrug"> <span>I consent to drug testing (record status shoot). <b>For a junior, a parent or guardian ticks this.</b></span></label>
+            </div>
+            <p id="feeLine" class="text-sm font-medium text-purple-900"></p>
+            <details class="text-xs text-slate-600"><summary class="cursor-pointer">Data we keep (GDPR)</summary>
+                <p class="mt-1">Entry details may be shared with tournament organisers, scoring systems and other competitors, for example target lists and results. Juniors must be supervised by a parent or legal guardian at all times. Neither RJD Archers nor the venue accepts liability for loss or damage to person or equipment. The organiser's decision is final.</p></details>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Send entry (needs 2FA)</button>
+        </form>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-2">
+            <h2 class="text-lg font-bold text-purple-950">Your entries for this tournament</h2>
+            <div id="mine" class="text-sm space-y-2"></div>
+            <div id="pay" class="hidden text-sm bg-amber-50 border border-amber-200 rounded p-3"></div>
+        </div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const gb = d => d ? new Date(d).toLocaleDateString('en-GB') : '';
+    const tid = new URLSearchParams(location.search).get('t');
+    let T = null, people = [];
+
+    // Archery GB age group: age at 1 January of the event year
+    function ageGroup(dob, eventDate) {
+        const a = new Date(eventDate).getFullYear() - new Date(dob).getFullYear();
+        return a >= 50 ? '50+' : a >= 21 ? 'Senior' : a >= 18 ? 'Under 21' : a >= 16 ? 'Under 18' : a === 15 ? 'Under 16' : a === 14 ? 'Under 15' : a >= 12 ? 'Under 14' : 'Under 12';
+    }
+    const JUNIOR = ['Under 18', 'Under 16', 'Under 15', 'Under 14', 'Under 12'];
+
+    function person() { return people.find(p => p.id === $('who').value); }
+    function fill() {
+        const p = person(); if (!p) return;
+        const parts = (p.name || '').trim().split(/\s+/);
+        $('fFore').value = parts.slice(0, -1).join(' ') || parts[0] || '';
+        $('fSur').value = parts.length > 1 ? parts[parts.length - 1] : '';
+        $('fTitle').value = p.title || ''; $('fAgb').value = p.archerygbnum || '';
+        $('fCName').value = p.self ? p.name : (p.parentName || ''); $('fCPhone').value = p.mobile || '';
+        fee();
+    }
+    function fee() {
+        const p = person(); if (!p || !T) return;
+        if (!p.dob) { $('feeLine').textContent = 'This person has no date of birth on their record. Ask the committee to add it before entering.'; return; }
+        const g = ageGroup(p.dob, T.event_date), f = JUNIOR.includes(g) ? T.fee_junior : T.fee_adult;
+        $('feeLine').textContent = 'Age group on the day: ' + g + '. Entry fee: £' + Number(f).toFixed(2) + ' per round.';
+    }
+    $('who').addEventListener('change', fill);
+
+    async function loadMine() {
+        const { data, error } = await sb.from('tournament_entries').select('id,forename,surname,round_entered,session,fee,status,paid,age_group').eq('tournament_id', tid).neq('status', 'withdrawn').order('created_at');
+        if (error) return say(error.message, true);
+        $('mine').innerHTML = (data || []).map(e => `<div class="flex flex-wrap justify-between gap-2 border-b border-slate-100 pb-2">
+            <span><b>${esc(e.forename)} ${esc(e.surname)}</b>: ${esc(e.round_entered)}, session ${esc(e.session)}, £${Number(e.fee).toFixed(2)}
+            <span class="text-xs px-2 py-0.5 rounded ${e.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-slate-100'}">${esc(e.status === 'requested' ? 'waiting for the organiser to confirm a place' : e.status)}</span>
+            ${e.paid ? '<span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">paid</span>' : ''}</span>
+            <button type="button" class="wd text-red-600 underline" data-id="${esc(e.id)}">Withdraw</button></div>`).join('') || '<p class="text-slate-500">None yet.</p>';
+        const unpaid = (data || []).some(e => e.status === 'confirmed' && !e.paid);
+        const pay = $('pay');
+        if (unpaid) {
+            const { data: info } = await sb.rpc('tournament_payment_info', { p_id: tid });
+            pay.classList.remove('hidden');
+            pay.innerHTML = '<b>Your place is confirmed: please pay.</b><br>' + esc(info || 'Ask the organiser how to pay.').replace(/\n/g, '<br>') +
+                (T.ref_code ? '<br>Reference: your AGB number + <b>' + esc(T.ref_code) + '</b> + your initials.' : '');
+        } else pay.classList.add('hidden');
+    }
+    $('mine').addEventListener('click', async e => {
+        if (!e.target.classList.contains('wd')) return;
+        if (!confirm('Withdraw this entry? If you have paid, contact the organiser about a refund.')) return;
+        const { error } = await sb.rpc('withdraw_tournament_entry', { p_id: e.target.dataset.id });
+        if (error) return say(error.code === '42501' ? 'Enter your 2FA code first.' : error.message, true);
+        say('Entry withdrawn.'); loadMine();
+    });
+
+    $('entryForm').addEventListener('submit', async ev => {
+        ev.preventDefault(); say('');
+        const p = person(); if (!p) return say('Choose who is shooting.', true);
+        if (!$('fDrug').checked) return say('Drug-testing consent must be ticked (a parent or guardian ticks it for a junior).', true);
+        const v = id => $(id).value.trim();
+        const e = { title: v('fTitle'), forename: v('fFore'), surname: v('fSur'), category: $('fCat').value, hand: $('fHand').value, agb_no: v('fAgb'),
+            bow_style: $('fBow').value, session: $('fSess').value, round_entered: $('fRound').value, special_needs: v('fNeeds'),
+            ianseo_phone: $('fPhone').checked, interest_double: $('fDouble').checked, will_score_for_disabled: $('fScore').checked, drug_consent: true,
+            contact_name: v('fCName'), contact_phone: v('fCPhone'), contact_email: v('fCMail'), contact_address: v('fCAddr') };
+        const { error } = await sb.rpc('enter_tournament', { p_tournament: tid, p_member: p.id, p_entry: e });
+        if (error) {
+            const t = /duplicate key/.test(error.message) ? 'That archer is already entered for this round.' : error.code === '42501' ? 'Please enter your 2FA code first (link at the top).' : error.message;
+            return say(t, true);
+        }
+        say('Entry sent. The organiser will confirm a place and then you can pay.'); loadMine();
+    });
+
+    async function start() {
+        if (!tid) { $('tName').textContent = 'No tournament chosen'; return; }
+        const { data: t } = await sb.from('tournaments').select('id,name,event_date,venue,rounds,sessions,closing_date,organiser_name,organiser_email,organiser_phone,fee_junior,fee_adult,ref_code,format_notes').eq('id', tid).maybeSingle();
+        if (!t) { $('tName').textContent = 'Tournament not found or not open'; return; }
+        T = t; $('tName').textContent = t.name;
+        const closed = t.closing_date && new Date(t.closing_date + 'T23:59:59') < new Date();
+        $('tInfo').innerHTML = `<p><b>${esc(gb(t.event_date))}</b> at ${esc(t.venue)}</p><p>Closing date: <b>${esc(gb(t.closing_date))}</b>${closed ? ' <span class="text-red-700 font-semibold">(closed)</span>' : ''}. Fees: juniors £${Number(t.fee_junior).toFixed(2)}, adults £${Number(t.fee_adult).toFixed(2)} per round.</p>
+            <p>Organiser: ${esc(t.organiser_name)}, ${esc(t.organiser_email)}, ${esc(t.organiser_phone)}</p>
+            <p class="whitespace-pre-line text-slate-600">${esc(t.format_notes)}</p>
+            <p class="text-xs text-slate-500">Only members of Archery GB or WA associated organisations may shoot. Bring your membership card. Outside archers: email the organiser to enter.</p>`;
+        $('fRound').innerHTML = t.rounds.map(r => `<option>${esc(r)}</option>`).join('');
+        $('fSess').innerHTML = t.sessions.map(r => `<option>${esc(r)}</option>`).join('');
+        $('fRound').addEventListener('change', () => {}); 
+
+        const { data: { session } } = await sb.auth.getSession();
+        const gate = $('gate');
+        if (!session) {
+            gate.innerHTML = '<p class="mb-2">Members, registered guests and parents sign in to enter.</p><button id="loginBtn" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold">Sign in</button>';
+            $('loginBtn').onclick = async () => {
+                const email = prompt('Your email address:'); if (!email) return;
+                const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.href } });
+                say(error ? error.message : 'Check your email for the sign-in link.', !!error);
+            };
+            return;
+        }
+        const { data: me } = await sb.from('members').select('id,name,title,dob,mobile,archerygbnum,membertype').eq('auth_id', session.user.id).maybeSingle();
+        if (!me) { gate.textContent = 'Your login is not linked to a club record yet. Ask the committee.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        gate.innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed to send an entry.</span> <a class="underline text-purple-700" href="/db/security.html?next=' + encodeURIComponent(location.pathname + location.search) + '">Enter your 2FA code</a>';
+        people = [];
+        if (['member', 'guest'].includes(me.membertype)) people.push({ ...me, self: true });
+        const { data: links } = await sb.from('member_guardians').select('child_id').eq('guardian_member_id', me.id);
+        const ids = (links || []).map(l => l.child_id);
+        if (ids.length) {
+            const { data: kids } = await sb.from('members').select('id,name,title,dob,mobile,archerygbnum,membertype').in('id', ids).order('name');
+            (kids || []).filter(k => ['member', 'guest'].includes(k.membertype) && k.dob && (Date.now() - new Date(k.dob)) / 31557600000 < 18).forEach(k => people.push({ ...k, parentName: me.name }));
+        }
+        if (!people.length) { gate.innerHTML += '<p class="mt-2">Only members and registered guests can enter (parents can enter their under-18 child who is a member). Beginners can join the club first.</p>'; return; }
+        $('who').innerHTML = people.map(p => `<option value="${esc(p.id)}">${esc(p.name)}${p.self ? ' (me)' : ''}</option>`).join('');
+        $('work').classList.remove('hidden'); fill(); loadMine();
+    }
+    start();
+</script>
+</body>
+</html>
