@@ -113,19 +113,6 @@
         <p>&copy; 2026 RJD Archers. All rights reserved. Built completely free for the club.</p>
     </footer>
 
-<script>
-fetch('header.html')
-    .then(response => {
-        console.log('Status:', response.status);
-        return response.text();
-    })
-    .then(data => {
-        document.getElementById('site-header').innerHTML = data;
-    })
-    .catch(error => {
-        console.error('Header load failed:', error);
-    });
-</script>
 
 </body>
 </html>

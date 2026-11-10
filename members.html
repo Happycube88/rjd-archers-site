@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Members Area | RJD Archers</title>
+    <!-- Tailwind CSS CDN for rapid free styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="/auth-status.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Header / Navigation -->
+
+     <!-- Header / Navigation (White to Slate Fade with Purple Brand) -->
+    <header class="bg-gradient-to-r from-white via-slate-200 to-slate-400 text-slate-900 shadow-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            
+            <!-- Logo & Brand Name -->
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
+                <span class="text-2xl font-bold tracking-wide text-purple-900 group-hover:text-purple-700 transition">RJD Archers</span>
+            </a>
+
+            <!-- Navigation Links in Purple -->
+            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
+                <a href="index.html" class="text-purple-700 hover:text-purple-950">Home</a>
+                <a href="Beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
+                <a href="fees.html" class="text-purple-700 hover:text-purple-950">Fees & Costs</a>
+                <a href="tournaments.html" class="text-purple-700 hover:text-purple-950">Tournaments & Results</a>
+                <a href="records.html" class="text-purple-700 hover:text-purple-950">Club Records</a>
+                <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
+                <a href="links.html" class="text-purple-700 hover:text-purple-950">Local Clubs & Map</a>
+                              <a href="calendar.html" class="text-purple-700 hover:text-purple-950">Calendar</a>
+                <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
+                <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
+                <a href="contacts.html" class="text-purple-700 hover:text-purple-950">Contact Us</a>
+                
+                  <span id="authStatus"></span>
+
+            </nav>
+        </div>
+    </header>
+    <main class="max-w-5xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold text-purple-950">Members area</h1>
+        <p class="text-slate-600 mt-1">Everything you can do as a member, registered guest or parent, in one place.</p>
+        <div id="gate" class="mt-6"></div>
+        <div id="hub" class="hidden mt-6 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 flex flex-wrap items-center justify-between gap-3">
+                <div><p id="hello" class="text-lg font-bold text-slate-900"></p><p id="chips" class="text-xs text-slate-500 mt-1"></p></div>
+                <div id="tfa"></div>
+            </div>
+            <div id="cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+        <div id="msg" class="text-sm text-center font-medium mt-3"></div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800 mt-12">
+        <p>&copy; 2026 RJD Archers. All rights reserved.</p>
+    </footer>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium mt-3 ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const card = (href, title, text, tone) => `<a href="${href}" class="block bg-white rounded-xl border border-slate-200 border-l-4 ${tone || 'border-l-purple-500'} p-4 shadow-sm hover:shadow-md hover:border-purple-300 transition">
+        <p class="font-bold text-slate-900">${title}</p><p class="text-sm text-slate-600 mt-1">${text}</p></a>`;
+    function loginBox(label, next) {
+        $('gate').innerHTML = `<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-md mx-auto space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">${label}</h2>
+            <p class="text-sm text-slate-600">Enter your email address and we will send you a sign-in link. No password needed.</p>
+            <input id="liEmail" type="email" autocomplete="email" placeholder="you@example.com" class="w-full border border-slate-300 p-2.5 rounded">
+            <button id="liBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded">Email me a sign-in link</button></div>`;
+        $('liBtn').onclick = async () => {
+            const email = $('liEmail').value.trim(); if (!email) return say('Enter your email address.', true);
+            const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + next } });
+            say(error ? error.message : 'Check your email for the sign-in link.', !!error);
+        };
+    }
+    async function twofa(next) {
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        const ok = a && a.currentLevel === 'aal2';
+        return ok ? '<span class="inline-block text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">2FA verified \u2713</span>'
+          : `<a class="inline-block text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200" href="/db/security.html?next=${encodeURIComponent(next)}">Enter your 2FA code to make changes</a>`;
+    }
+
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return loginBox('Member login', '/members.html');
+        const { data: me } = await sb.from('members').select('id,name,membertype,recordkeeper,dob').eq('auth_id', session.user.id).maybeSingle();
+        const [{ data: com }, { data: lead }] = await Promise.all([sb.rpc('is_committee'), sb.rpc('is_session_lead')]);
+        $('hub').classList.remove('hidden');
+        if (!me) { $('hello').textContent = 'You are signed in as ' + session.user.email; $('chips').textContent = 'Your login is not linked to a club record yet. Ask a committee member to add you with this email address.'; $('tfa').innerHTML = await twofa('/members.html'); return; }
+        const first = (me.name || '').split(/\s+/)[0];
+        $('hello').textContent = 'Hello ' + first;
+        const kind = { member: 'Member', guest: 'Registered guest', parent: 'Parent or guardian', beginner: 'Beginner' }[me.membertype] || me.membertype;
+        const chips = [kind]; if (com === true) chips.push('Committee'); if (lead === true) chips.push('Session lead'); if (me.recordkeeper) chips.push('Record keeper');
+        $('chips').textContent = chips.join(' \u00b7 ');
+        $('tfa').innerHTML = await twofa('/members.html');
+        const c = [];
+        c.push(card('/db/edit-profile.html', 'My profile and next of kin', 'Update your contact details and next of kin.' + (me.membertype === 'parent' ? ' Includes your children.' : '')));
+        if (['member', 'guest', 'parent'].includes(me.membertype)) c.push(card('/db/club-nights.html', 'Book a club night', 'See the Tuesday and Friday nights. Booking opens 5pm the day before and closes 5pm on the day.'));
+        c.push(card('/tournaments.html', 'Enter a tournament', 'The 2027 events. Enter online, or use the paper route.'));
+        c.push(card('/records.html', 'Club records and 252 scores', 'Add your 252 badge scores and see the club records.'));
+        if (me.membertype === 'parent') c.push(card('/db/edit-profile.html#kids', 'My children', 'Update their details, enter their scores, book their nights.'));
+        c.push(card('/db/security.html', 'Security and 2FA', 'Set up or check the authenticator app that protects changes.', 'border-l-slate-400'));
+        if (com === true) c.push(card('/committee.html', 'Committee area', 'People, tournaments, club nights and guests.', 'border-l-amber-500'));
+        else if (lead === true) c.push(card('/db/committee-club-nights.html', 'Club night attendees', 'See who is coming to a club night.', 'border-l-amber-500'));
+        if (me.recordkeeper) c.push(card('/records.html', 'Record keeper: check scores', 'Verify 252 scores and mark badges given.', 'border-l-amber-500'));
+        $('cards').innerHTML = c.join('');
+    }
+    start();
+</script>
+</body>
+</html>

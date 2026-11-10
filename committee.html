@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Committee Area | RJD Archers</title>
+    <!-- Tailwind CSS CDN for rapid free styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="/auth-status.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Header / Navigation -->
+
+     <!-- Header / Navigation (White to Slate Fade with Purple Brand) -->
+    <header class="bg-gradient-to-r from-white via-slate-200 to-slate-400 text-slate-900 shadow-md border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            
+            <!-- Logo & Brand Name -->
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
+                <span class="text-2xl font-bold tracking-wide text-purple-900 group-hover:text-purple-700 transition">RJD Archers</span>
+            </a>
+
+            <!-- Navigation Links in Purple -->
+            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
+                <a href="index.html" class="text-purple-700 hover:text-purple-950">Home</a>
+                <a href="Beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
+                <a href="fees.html" class="text-purple-700 hover:text-purple-950">Fees & Costs</a>
+                <a href="tournaments.html" class="text-purple-700 hover:text-purple-950">Tournaments & Results</a>
+                <a href="records.html" class="text-purple-700 hover:text-purple-950">Club Records</a>
+                <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
+                <a href="links.html" class="text-purple-700 hover:text-purple-950">Local Clubs & Map</a>
+                              <a href="calendar.html" class="text-purple-700 hover:text-purple-950">Calendar</a>
+                <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
+                <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
+                <a href="contacts.html" class="text-purple-700 hover:text-purple-950">Contact Us</a>
+                
+                  <span id="authStatus"></span>
+
+            </nav>
+        </div>
+    </header>
+    <main class="max-w-5xl mx-auto px-4 py-10">
+        <h1 class="text-3xl font-bold text-purple-950">Committee area</h1>
+        <p class="text-slate-600 mt-1">Running the club: people, tournaments, club nights and guests. Changes need your 2FA code.</p>
+        <div id="gate" class="mt-6"></div>
+        <div id="hub" class="hidden mt-6 space-y-8">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 flex flex-wrap items-center justify-between gap-3">
+                <div><p id="hello" class="text-lg font-bold text-slate-900"></p><p class="text-xs text-slate-500 mt-1"><a class="underline text-purple-700" href="/members.html">Members area</a></p></div>
+                <div id="tfa"></div>
+            </div>
+            <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">People</h2><div id="people" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
+            <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Tournaments</h2><div id="tour" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
+            <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Club nights</h2><div id="nights" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
+            <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Records and security</h2><div id="other" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
+        </div>
+        <div id="msg" class="text-sm text-center font-medium mt-3"></div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800 mt-12">
+        <p>&copy; 2026 RJD Archers. All rights reserved.</p>
+    </footer>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium mt-3 ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const card = (href, title, text, tone) => `<a href="${href}" class="block bg-white rounded-xl border border-slate-200 border-l-4 ${tone || 'border-l-purple-500'} p-4 shadow-sm hover:shadow-md hover:border-purple-300 transition">
+        <p class="font-bold text-slate-900">${title}</p><p class="text-sm text-slate-600 mt-1">${text}</p></a>`;
+    function loginBox(label, next) {
+        $('gate').innerHTML = `<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-md mx-auto space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">${label}</h2>
+            <p class="text-sm text-slate-600">Enter your email address and we will send you a sign-in link. No password needed.</p>
+            <input id="liEmail" type="email" autocomplete="email" placeholder="you@example.com" class="w-full border border-slate-300 p-2.5 rounded">
+            <button id="liBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded">Email me a sign-in link</button></div>`;
+        $('liBtn').onclick = async () => {
+            const email = $('liEmail').value.trim(); if (!email) return say('Enter your email address.', true);
+            const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + next } });
+            say(error ? error.message : 'Check your email for the sign-in link.', !!error);
+        };
+    }
+    async function twofa(next) {
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        const ok = a && a.currentLevel === 'aal2';
+        return ok ? '<span class="inline-block text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded">2FA verified \u2713</span>'
+          : `<a class="inline-block text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200" href="/db/security.html?next=${encodeURIComponent(next)}">Enter your 2FA code to make changes</a>`;
+    }
+
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return loginBox('Committee login', '/committee.html');
+        const [{ data: com }, { data: lead }] = await Promise.all([sb.rpc('is_committee'), sb.rpc('is_session_lead')]);
+        if (com !== true) {
+            if (lead === true) { $('gate').innerHTML = '<div class="bg-white rounded-xl border border-slate-200 p-6 max-w-md mx-auto space-y-3"><p class="text-sm text-slate-700">The committee area is for committee members. As a Session lead you can see who is coming to club nights.</p>' + card('/db/committee-club-nights.html', 'Club night attendees', 'See who is coming to a club night.', 'border-l-amber-500') + '</div>'; return; }
+            $('gate').innerHTML = '<div class="bg-white rounded-xl border border-slate-200 p-6 max-w-md mx-auto text-sm text-slate-700">This area is for committee members only. <a class="underline text-purple-700" href="/members.html">Go to the Members area</a>.</div>'; return;
+        }
+        const { data: me } = await sb.from('members').select('name').eq('auth_id', session.user.id).maybeSingle();
+        $('hub').classList.remove('hidden');
+        $('hello').textContent = 'Hello ' + ((me && me.name) ? me.name.split(/\s+/)[0] : session.user.email);
+        $('tfa').innerHTML = await twofa('/committee.html');
+        $('people').innerHTML = [
+            card('/db/committee-members.html', 'Member list', 'Everyone on the system, with type, fee category and roles.'),
+            card('/db/committee-add-member.html', 'Add people', 'Enquiries to beginners to members, guests, parents and guardians. Shows who has missing information.'),
+            card('/db/committee-edit-member.html', 'Edit people', 'Change any detail or role, including Session lead and record keeper.'),
+            card('/db/committee-guests.html', 'One-off shoot guests', 'Visitors from other clubs at a single shoot.')].join('');
+        $('tour').innerHTML = [card('/db/committee-tournaments.html', 'Tournament organiser', 'Create events, confirm places, mark paid, add paper entries, download the list.', 'border-l-indigo-500'),
+            card('/tournaments.html', 'Public Tournaments page', 'See it as an entrant does.', 'border-l-slate-400')].join('');
+        $('nights').innerHTML = [card('/db/committee-club-nights.html', 'Club nights and attendees', 'Who is coming, move or cancel a night, weekly pattern and defaults.', 'border-l-green-500'),
+            card('/db/club-nights.html', 'Booking page', 'See it as a member does.', 'border-l-slate-400')].join('');
+        $('other').innerHTML = [card('/records.html', 'Club records and 252', 'Records, and the record keeper panel for checking scores.', 'border-l-amber-500'),
+            card('/db/security.html', 'Security and 2FA', 'Your authenticator app.', 'border-l-slate-400'),
+            card('/news.html', 'News page', 'Latest club news.', 'border-l-slate-400')].join('');
+    }
+    start();
+</script>
+</body>
+</html>
