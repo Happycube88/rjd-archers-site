@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tournaments & Results | RJD Archers</title>
+    <title>Tournaments 2027 | RJD Archers</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -35,113 +35,132 @@
             </nav>
         </div>
     </header>
-
-    <!-- Page Header -->
-    <section class="bg-slate-800 text-white py-10 px-4">
-        <div class="max-w-4xl mx-auto text-center">
-            <h1 class="text-3xl font-bold">Tournaments & Past Results</h1>
-            <p class="text-slate-300 mt-2">Upcoming events, entry forms, rules, external Ianseo listings, and historical results sheets.</p>
+    <!-- Hero -->
+    <section class="relative bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-white overflow-hidden">
+        <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 20% 20%,#fff 0,transparent 40%),radial-gradient(circle at 80% 80%,#a78bfa 0,transparent 40%)"></div>
+        <div class="relative max-w-5xl mx-auto px-4 py-14 text-center">
+            <p class="text-purple-200 text-sm font-semibold tracking-widest uppercase">Llantrisant Leisure Centre</p>
+            <h1 class="text-4xl md:text-5xl font-extrabold mt-2">Tournaments 2027</h1>
+            <p class="text-purple-100 mt-3 max-w-2xl mx-auto">Three indoor UKRS record status shoots. Enter online in minutes, or print the form, fill it in by hand and send us a photo.</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <a href="#events" class="bg-white text-purple-900 font-semibold px-5 py-2.5 rounded-lg shadow hover:bg-purple-50">See the events</a>
+                <a href="#paper" class="bg-purple-700/60 border border-purple-300/40 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-purple-700">Prefer paper?</a>
+            </div>
         </div>
     </section>
 
-    <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 py-12 space-y-8">
-        
-        <!-- Tournament Fees & Rules -->
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-4">
-            <h2 class="text-2xl font-bold text-slate-900">Tournament Information & Fees</h2>
-            <p class="text-slate-600 text-sm leading-relaxed">
-                Tournament fees must be paid at the time of completing the entry form. Open to members across the UK with a valid Archery GB membership number. Please check availability with the Tournament Organiser before submitting payments via BACS.
-            </p>
-        </div>
+    <main class="max-w-5xl mx-auto px-4 py-12 space-y-12">
 
-              <!-- External Ianseo Tournament Listings Integration -->
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-4">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900">UK & Regional Tournaments (Ianseo)</h2>
-                    <p class="text-slate-600 text-sm mt-1">Browse live tournament entries, official target lists, and results across the region via Ianseo.</p>
-                </div>
-                <a href="https://www.ianseo.net/TourList.php" target="_blank" rel="noopener noreferrer" class="inline-flex items-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2.5 px-5 rounded-lg shadow transition">
-                    Open Ianseo Tournament Portal &rarr;
-                </a>
+        <!-- Events -->
+        <section id="events" class="space-y-6">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold text-slate-900">The 2027 events</h2>
+                <p class="text-slate-600 mt-1">All shoots are on a Sunday. Morning session A and afternoon session B (kit inspection 09:15 and 13:15).</p>
             </div>
-        </div>
-  
-        <!-- Upcoming Club Events (read from the club database) -->
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
-            <h2 class="text-2xl font-bold text-slate-900">Upcoming RJD Archers Events</h2>
-            <p class="text-sm text-slate-600">Members, registered guests and parents can now enter online. Archers from other clubs: use the organiser's email on the event page, or the downloadable form below.</p>
-            <div id="upcoming" class="space-y-4"><p class="text-sm text-slate-500">Loading events…</p></div>
-        </div>
-
-        <!-- Tournament Entry Forms Download Section -->
-        <section class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-purple-900">Download Tournament Entry Forms</h2>
-                <p class="text-slate-600 text-sm mt-1">Select an entry form below to download, fill it out, and return it to us.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <article class="ev bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" data-date="2027-01-31">
+                    <div class="bg-purple-700 text-white px-5 py-4"><p class="text-xs uppercase tracking-widest text-purple-200">Sunday</p><p class="text-2xl font-extrabold">31 January 2027</p></div>
+                    <div class="p-5 flex-1 space-y-2">
+                        <h3 class="text-lg font-bold text-slate-900">RJD Archers Portsmouth</h3>
+                        <p class="text-sm text-slate-600"><b>Round:</b> Portsmouth</p>
+                        <p class="text-sm text-slate-600"><b>Closing date:</b> 10 January 2027</p>
+                        <p class="text-sm text-slate-600"><b>Organiser:</b> Sian Williams, 07443 473226</p>
+                    </div>
+                    <div class="p-5 pt-0"><a class="enter block text-center bg-slate-100 text-slate-500 font-semibold py-2.5 rounded-lg" href="#paper">Entries opening soon</a></div>
+                </article>
+                <article class="ev bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" data-date="2027-02-28">
+                    <div class="bg-indigo-700 text-white px-5 py-4"><p class="text-xs uppercase tracking-widest text-indigo-200">Sunday</p><p class="text-2xl font-extrabold">28 February 2027</p></div>
+                    <div class="p-5 flex-1 space-y-2">
+                        <h3 class="text-lg font-bold text-slate-900">GAA Senior and Junior Indoor Championship</h3>
+                        <p class="text-sm text-slate-600"><b>Round:</b> WA 18</p>
+                        <p class="text-sm text-slate-600"><b>Closing date:</b> 7 February 2027</p>
+                        <p class="text-sm text-slate-600"><b>Organiser:</b> Richard Downer, 07976 960095</p>
+                    </div>
+                    <div class="p-5 pt-0"><a class="enter block text-center bg-slate-100 text-slate-500 font-semibold py-2.5 rounded-lg" href="#paper">Entries opening soon</a></div>
+                </article>
+                <article class="ev bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" data-date="2027-04-04">
+                    <div class="bg-fuchsia-700 text-white px-5 py-4"><p class="text-xs uppercase tracking-widest text-fuchsia-200">Sunday</p><p class="text-2xl font-extrabold">4 April 2027</p></div>
+                    <div class="p-5 flex-1 space-y-2">
+                        <h3 class="text-lg font-bold text-slate-900">RJD Archers Indoor Vegas and Worcester</h3>
+                        <p class="text-sm text-slate-600"><b>Rounds:</b> Vegas (morning session), Worcester (afternoon session)</p>
+                        <p class="text-sm text-slate-600"><b>Closing date:</b> 14 March 2027</p>
+                        <p class="text-sm text-slate-600"><b>Organiser:</b> Graham Mansbridge, 07495 445076</p>
+                    </div>
+                    <div class="p-5 pt-0"><a class="enter block text-center bg-slate-100 text-slate-500 font-semibold py-2.5 rounded-lg" href="#paper">Entries opening soon</a></div>
+                </article>
             </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-slate-700">
+                <div><p class="font-bold text-slate-900">Fees</p><p>Juniors £12, adults £15 per round.</p></div>
+                <div><p class="font-bold text-slate-900">Who can enter</p><p>Members of Archery GB or WA associated organisations. Bring your membership card. Juniors must be supervised by a parent or guardian.</p></div>
+                <div><p class="font-bold text-slate-900">Venue</p><p>Llantrisant Leisure Centre, Southgate Park, Llantrisant, CF72 8DJ</p></div>
+            </div>
+        </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Entry Form GAA WA18 2026 -->
-                <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
-                    <div>
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
-                        <h3 class="font-bold text-slate-800 text-base mt-2">GAA WA18 2026</h3>
-                        <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
-                    </div>
-                    <a href="downloads/Entry form GAA WA18 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
-                        Download Form
-                    </a>
+        <!-- How to enter -->
+        <section class="space-y-6">
+            <h2 class="text-3xl font-bold text-slate-900 text-center">How to enter</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="bg-white rounded-2xl border border-purple-200 shadow-sm p-6 space-y-3">
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Online</span>
+                    <h3 class="text-xl font-bold text-slate-900">Enter on this website</h3>
+                    <p class="text-sm text-slate-600">For members, registered guests, and parents entering a child. Sign in, pick the round and session, and send the entry. Your age group and fee are worked out for you.</p>
+                    <p class="text-sm text-slate-600">The organiser confirms your place first, then you pay. Bank details appear on your entry once the place is confirmed.</p>
                 </div>
-
-                <!-- Entry Form RJD Portsmouth 2026 -->
-                <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
-                    <div>
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
-                        <h3 class="font-bold text-slate-800 text-base mt-2">RJD Portsmouth 2026</h3>
-                        <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
-                    </div>
-                    <a href="downloads/Entry form RJD Portsmouth 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
-                        Download Form
-                    </a>
-                </div>
-
-                <!-- Entry Form RJD Worcester 2026 -->
-                <div class="border border-slate-200 rounded-lg p-4 flex flex-col justify-between bg-slate-50 hover:bg-slate-100 transition">
-                    <div>
-                        <span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Excel Form</span>
-                        <h3 class="font-bold text-slate-800 text-base mt-2">RJD Worcester 2026</h3>
-                        <p class="text-xs text-slate-500 mt-1">Official entry form spreadsheet.</p>
-                    </div>
-                    <a href="downloads/Entry form RJD Worcester 2026.xlsx" download class="mt-4 inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg shadow-sm transition">
-                        Download Form
-                    </a>
+                <div id="paper" class="bg-white rounded-2xl border border-amber-200 shadow-sm p-6 space-y-3 scroll-mt-6">
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800 uppercase">On paper</span>
+                    <h3 class="text-xl font-bold text-slate-900">Print it, fill it in, send a photo</h3>
+                    <ol class="list-decimal ml-5 text-sm text-slate-700 space-y-1.5">
+                        <li>Download the entry form for your event below and print it.</li>
+                        <li>Fill it in by hand and sign it. Juniors need a parent or guardian signature.</li>
+                        <li>Take a clear photo or scan of the whole page.</li>
+                        <li>Email the photo to <a class="underline text-purple-700 font-semibold" href="mailto:rjdarcherstournaments@gmail.com">rjdarcherstournaments@gmail.com</a>, or text the organiser if you need help.</li>
+                        <li>We type your entry in for you and confirm your place. Pay after you hear from us.</li>
+                    </ol>
+                    <p class="text-xs text-slate-500">Archers from other clubs: this is the way to enter.</p>
                 </div>
             </div>
         </section>
 
+        <!-- Downloads -->
+        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-2xl font-bold text-purple-900">Download the 2027 entry forms</h2>
+            <p class="text-slate-600 text-sm mt-1 mb-5">Excel spreadsheets. Each includes the full prospectus (timings, format, awards, dress code) on the first sheet.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="border border-slate-200 rounded-xl p-4 flex flex-col justify-between bg-slate-50">
+                    <div><span class="text-xs font-semibold px-2 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">31 Jan 2027</span><h3 class="font-bold text-slate-800 mt-2">Portsmouth</h3><p class="text-xs text-slate-500 mt-1">Entry form and prospectus</p></div>
+                    <a href="downloads/Entry form RJD Portsmouth 2027.xlsx" download class="mt-4 text-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg">Download form</a>
+                </div>
+                <div class="border border-slate-200 rounded-xl p-4 flex flex-col justify-between bg-slate-50">
+                    <div><span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 uppercase">28 Feb 2027</span><h3 class="font-bold text-slate-800 mt-2">GAA WA 18</h3><p class="text-xs text-slate-500 mt-1">Entry form and prospectus</p></div>
+                    <a href="downloads/Entry form GAA WA18 2027.xlsx" download class="mt-4 text-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg">Download form</a>
+                </div>
+                <div class="border border-slate-200 rounded-xl p-4 flex flex-col justify-between bg-slate-50">
+                    <div><span class="text-xs font-semibold px-2 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 uppercase">4 Apr 2027</span><h3 class="font-bold text-slate-800 mt-2">Vegas and Worcester</h3><p class="text-xs text-slate-500 mt-1">Entry form and prospectus</p></div>
+                    <a href="downloads/Entry form RJD Vegas and Worcester 2027.xlsx" download class="mt-4 text-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg">Download form</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ianseo -->
+        <section class="bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-2xl p-6 md:p-8 flex flex-wrap items-center justify-between gap-4">
+            <div><h2 class="text-xl font-bold">Target lists and results on Ianseo</h2><p class="text-slate-300 text-sm mt-1">Live entries, target lists and results for UK and regional tournaments.</p></div>
+            <a href="https://www.ianseo.net/TourList.php" target="_blank" rel="noopener noreferrer" class="bg-purple-500 hover:bg-purple-400 text-white font-semibold px-5 py-2.5 rounded-lg">Open Ianseo &rarr;</a>
+        </section>
+
         <!-- Past Results Archive -->
-        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
-            <h2 class="text-2xl font-bold text-slate-900">Past Tournament Results</h2>
+        <section class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <h2 class="text-2xl font-bold text-slate-900">Past tournament results</h2>
             <div class="space-y-4 text-sm">
                 <div class="flex justify-between items-center border-b pb-3">
-                    <div>
-                        <p class="font-semibold text-slate-800">RJD Archers WA720 Double Championship 2024</p>
-                        <p class="text-xs text-slate-500">Held June 23rd, 2024</p>
-                    </div>
+                    <div><p class="font-semibold text-slate-800">RJD Archers WA720 Double Championship 2024</p><p class="text-xs text-slate-500">Held June 23rd, 2024</p></div>
                     <a href="#" class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-green-700">Download Excel</a>
                 </div>
                 <div class="flex justify-between items-center pb-2">
-                    <div>
-                        <p class="font-semibold text-slate-800">RJD Archers Worcester Championships 2024</p>
-                        <p class="text-xs text-slate-500">Held March 24th, 2024</p>
-                    </div>
+                    <div><p class="font-semibold text-slate-800">RJD Archers Worcester Championships 2024</p><p class="text-xs text-slate-500">Held March 24th, 2024</p></div>
                     <a href="#" class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-purple-700">Download PDF</a>
                 </div>
             </div>
-        </div>
-
+        </section>
     </main>
 
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
@@ -152,23 +171,19 @@
     <script src="/auth-status.js"></script>
 <script>
 (function () {
-    const esc = x => String(x ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const box = document.getElementById('upcoming'); if (!box) return;
+    // Turns each event card's button into "Enter online" once the committee has published that tournament
     const sb = supabase.createClient('https://onepmhddrqmvhyhagkth.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw');
-    const gb = d => d ? new Date(d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
     const today = new Date().toISOString().slice(0, 10);
-    sb.from('tournaments').select('id,name,event_date,venue,rounds,closing_date,organiser_name,organiser_email,fee_junior,fee_adult').gte('event_date', today).order('event_date').then(({ data, error }) => {
-        if (error || !data || !data.length) { box.innerHTML = '<p class="text-sm text-slate-500">No events are open for entry right now. Check back soon.</p>'; return; }
-        box.innerHTML = data.map(t => {
-            const closed = t.closing_date && t.closing_date < today;
-            return `<div class="border-b border-slate-100 pb-4 space-y-1">
-                <h3 class="font-bold text-lg text-slate-800">${esc(t.name)}</h3>
-                <p class="text-sm text-slate-500">${esc(gb(t.event_date))}, ${esc(t.venue)}</p>
-                <p class="text-sm text-slate-500">Round: ${esc((t.rounds || []).join(' / '))}. Fees: juniors £${Number(t.fee_junior).toFixed(2)}, adults £${Number(t.fee_adult).toFixed(2)}. Closing date: ${esc(gb(t.closing_date))}</p>
-                <div class="pt-2">${closed ? '<span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded font-semibold">Entries closed</span>'
-                  : `<a href="/db/tournament-enter.html?t=${encodeURIComponent(t.id)}" class="bg-green-100 text-green-800 text-xs px-3 py-1.5 rounded font-semibold hover:bg-green-200">Enter online</a>`}
-                  ${t.organiser_email ? `<span class="text-xs text-slate-500 ml-2">Organiser: ${esc(t.organiser_name)}, ${esc(t.organiser_email)}</span>` : ''}</div></div>`;
-        }).join('');
+    sb.from('tournaments').select('id,event_date,closing_date').gte('event_date', today).then(({ data, error }) => {
+        if (error || !data) return;
+        data.forEach(t => {
+            const card = document.querySelector('.ev[data-date="' + t.event_date + '"]'); if (!card) return;
+            const a = card.querySelector('a.enter');
+            if (t.closing_date && t.closing_date < today) { a.textContent = 'Entries closed'; a.removeAttribute('href'); return; }
+            a.href = '/db/tournament-enter.html?t=' + encodeURIComponent(t.id);
+            a.textContent = 'Enter online';
+            a.className = 'enter block text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 rounded-lg';
+        });
     });
 })();
 </script>
