@@ -47,7 +47,8 @@
             const full = pl.max_places && pl.taken >= pl.max_places;
             const b = mine.find(x => x.night_id === n.id && x.member_id === who && x.status === 'booked');
             let action = '';
-            if (!signedIn) action = '<span class="text-xs text-slate-500">Sign in to book</span>';
+            if (n.cancelled) action = '';
+            else if (!signedIn) action = '<span class="text-xs text-slate-500">Sign in to book</span>';
             else if (b) action = st !== 'closed' ? `<button class="cancel text-red-600 underline text-sm" data-id="${esc(b.id)}">Cancel booking</button>` : '';
             else if (st === 'before') action = '<span class="text-xs text-slate-500">Opens 5pm the day before</span>';
             else if (st === 'closed') action = '<span class="text-xs text-slate-500">Closed</span>';
@@ -55,7 +56,8 @@
             else if (who) action = `<button class="book bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded text-sm font-semibold" data-id="${esc(n.id)}">Book</button>`;
             return `<div class="bg-white p-4 rounded-xl border ${b ? 'border-green-300' : 'border-slate-200'} flex flex-wrap justify-between items-center gap-2">
                 <div><div class="font-bold">${esc(gb(n.night_date))}</div>
-                <div class="text-sm text-slate-600">${describe(n)}${n.venue ? ' · ' + esc(n.venue) : ''}${n.fee != null ? ' · £' + Number(n.fee).toFixed(2) : ''}</div>
+                <div class="text-sm text-slate-600">${n.start_time ? esc(n.start_time.slice(0, 5)) + (n.end_time ? '–' + esc(n.end_time.slice(0, 5)) : '') + ' · ' : ''}${describe(n)}${n.venue ? ' · ' + esc(n.venue) : ''}${n.fee != null ? ' · £' + Number(n.fee).toFixed(2) : ''}</div>
+                ${n.cancelled ? '<div class="text-sm font-semibold text-red-700">Cancelled' + (n.cancel_reason ? ': ' + esc(n.cancel_reason) : '') + '</div>' : ''}
                 <div class="text-xs text-slate-500">${pl.max_places ? pl.taken + ' of ' + pl.max_places + ' places taken' : pl.taken + ' booked'}${n.notes ? ' · ' + esc(n.notes) : ''}</div>
                 ${b ? '<div class="text-xs text-green-700 font-semibold">Booked' + (b.paid ? ', paid' : '') + '</div>' : ''}</div><div>${action}</div></div>`;
         }).join('') || '<p class="text-center text-slate-500">No club nights are listed yet.</p>';
