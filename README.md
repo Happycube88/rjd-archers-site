@@ -11,7 +11,7 @@ Public pages show club information, tournaments and records. Members, parents, g
 |---|---|---|
 | Pages | Plain HTML, Tailwind CSS and a little JavaScript. No build step | this repo |
 | Hosting | Cloudflare Pages, project `rjd`, deploys automatically from `main` | Cloudflare |
-| Sign-up form | `functions/api/register.js`, a Cloudflare Pages Function | this repo |
+| Sign-up and contact forms | `functions/api/register.js` and `contact.js`, Cloudflare Pages Functions. Email alerts use Resend; its key is a Cloudflare secret, never in the repo | this repo |
 | Database and logins | Supabase (Postgres), project `RJD`, region eu-west-2 | Supabase |
 
 ## Folder guide
@@ -28,6 +28,7 @@ auth-status.js                              the My account menu in the header
 db/                                         pages that talk to the database
 downloads/                                  printable 2027 tournament entry forms
 functions/api/register.js                   beginner enquiry form handler
+functions/api/contact.js                    Contact us form handler (saves the message, emails the club via Resend)
 sql/                                        database setup scripts (see below)
 _headers                                    browser security headers for Cloudflare
 BACKUP_AND_RESTORE.md                       backup routine and restore steps
@@ -52,7 +53,8 @@ Run the scripts in the Supabase SQL editor, in this order, when building a new p
 9. `tournaments.sql`
 10. `club_nights.sql`
 11. `club_night_schedule.sql`
-12. `bootstrap_first_committee.sql` (edit the email first; creates the first committee member)
+12. `contact_messages.sql` (Contact us form messages)
+13. `bootstrap_first_committee.sql` (edit the email first; creates the first committee member)
 
 Then run `verify_policies.sql`: every row should say PASS. Run it again after any database change. Most scripts are safe to run twice.
 

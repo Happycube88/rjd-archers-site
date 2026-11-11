@@ -24,13 +24,47 @@
     <!-- Main Content Layout -->
     <main class="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-2 gap-8">
         
-        <!-- Left Column: Contact Form (Sends directly to rjdarchers.members@gmail.com via Formspree or Netlify) -->
+        <!-- Left Column: Contact Form (saved for the committee and emailed to the club) -->
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
             <h2 class="text-2xl font-bold text-slate-900">Send Us a Message</h2>
             <p class="text-slate-600 text-sm">Have a question about joining, beginner sessions, or visiting our range? Fill out the form below and we’ll get back to you.</p>
             
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeLmVwKBP17pRU4oU1ppb1cQCrn7RqPVvrjnCMppJ6_PcTn7g/viewform?embedded=true" width="100%" height="944" frameborder="0" marginheight="0" marginwidth="0">
-Enquiry Form</iframe>
+<form id="contactForm" class="space-y-4" novalidate>
+                <div><label for="cName" class="block text-sm font-semibold text-slate-800 mb-1">Your full name <span class="text-red-700">*</span></label>
+                    <input id="cName" name="name" required maxlength="100" autocomplete="name" class="w-full border border-slate-300 p-2.5 rounded"></div>
+                <div><label for="cEmail" class="block text-sm font-semibold text-slate-800 mb-1">Your email <span class="text-red-700">*</span></label>
+                    <input id="cEmail" name="email" type="email" required maxlength="254" autocomplete="email" class="w-full border border-slate-300 p-2.5 rounded"></div>
+                <div><label for="cTopic" class="block text-sm font-semibold text-slate-800 mb-1">What is it about? <span class="text-red-700">*</span></label>
+                    <select id="cTopic" name="topic" required class="w-full border border-slate-300 p-2.5 rounded bg-white">
+                        <option value="">Choose one</option><option>Beginners Course</option><option>Club Membership</option><option>Tournaments</option><option>General Enquiry</option>
+                    </select>
+                    <p id="cHint" class="text-xs text-slate-600 mt-1 hidden">Want to book a beginners course? <a class="underline text-purple-800" href="/db/register-beginner.html">Use the beginner sign-up form</a> to go on the list.</p></div>
+                <div><label for="cMsg" class="block text-sm font-semibold text-slate-800 mb-1">Your message <span class="text-red-700">*</span></label>
+                    <textarea id="cMsg" name="message" required rows="6" maxlength="3000" class="w-full border border-slate-300 p-2.5 rounded"></textarea></div>
+                <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty <input id="cWeb" name="website" tabindex="-1" autocomplete="off"></label></div>
+                <button id="cSend" type="submit" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-6 py-2.5 rounded">Send message</button>
+                <p id="cMsgOut" class="text-sm font-medium" role="status" aria-live="polite"></p>
+                <p class="text-xs text-slate-500">We use your details only to reply to you. Under-18s: please ask a parent or guardian to write.</p>
+            </form>
+            <script>
+            (function () {
+                var f = document.getElementById('contactForm'), out = document.getElementById('cMsgOut');
+                document.getElementById('cTopic').addEventListener('change', function () { document.getElementById('cHint').classList.toggle('hidden', this.value !== 'Beginners Course'); });
+                f.addEventListener('submit', async function (e) {
+                    e.preventDefault(); out.className = 'text-sm font-medium text-slate-700'; out.textContent = '';
+                    var d = { name: f.name.value, email: f.email.value, topic: f.topic.value, message: f.message.value, website: document.getElementById('cWeb').value };
+                    if (!d.name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim()) || !d.topic || !d.message.trim()) { out.className = 'text-sm font-medium text-red-700'; out.textContent = 'Please fill in every box with a star.'; return; }
+                    var btn = document.getElementById('cSend'); btn.disabled = true; out.textContent = 'Sending...';
+                    try {
+                        var r = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+                        var j = await r.json();
+                        if (j.success) { f.reset(); out.className = 'text-sm font-medium text-green-700'; out.textContent = 'Thank you. Your message has been sent and we will reply by email.'; }
+                        else { out.className = 'text-sm font-medium text-red-700'; out.textContent = j.error || 'Sorry, that did not send. Please try again.'; }
+                    } catch (err) { out.className = 'text-sm font-medium text-red-700'; out.textContent = 'Sorry, that did not send. Please check your connection and try again.'; }
+                    btn.disabled = false;
+                });
+            })();
+            </script>
 
                 
         </div>

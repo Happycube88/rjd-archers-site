@@ -76,6 +76,7 @@
         $('tfa').innerHTML = await twofa('/committee.html');
         $('people').innerHTML = [
             card('/db/committee-members.html', 'Member list', 'Everyone on the system, with type, fee category and roles.'),
+            card('/db/committee-messages.html', 'Website messages', 'Messages sent from the Contact us form. Reply by email and mark them done.'),
             card('/db/committee-add-member.html', 'Add people', 'Enquiries to beginners to members, guests, parents and guardians. Shows who has missing information.'),
             card('/db/committee-edit-member.html', 'Edit people', 'Change any detail or role, including Session lead and record keeper.'),
             card('/db/committee-guests.html', 'One-off shoot guests', 'Visitors from other clubs at a single shoot.')].join('');
