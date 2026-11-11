@@ -32,3 +32,9 @@
 
 ## Calendar reminder
 First Sunday of each month: quick copy. Quarterly: full copy + ZIP. Yearly: test restore.
+
+## Where to keep the copies (free)
+- The club Google account (rjdarchers.members@gmail.com) has 15 GB of free Google Drive: make a private folder called `RJD backups`, never share it, and turn on 2-step verification for that Google account.
+- Put only locked `.rjdbak` files and the SQL dump (zip it with a password, e.g. 7-Zip AES) there. Google can read ordinary Drive files, so locking them first matters.
+- Keep a second copy on a committee member's own computer or encrypted USB stick, so one lost account does not lose everything.
+- Keep the last 12 monthly copies and delete older ones.

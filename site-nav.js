@@ -38,6 +38,14 @@
       '<div id="navBody" class="hidden md:flex w-full md:w-auto flex-col md:flex-row md:items-center gap-1 md:gap-3 text-sm">' + nav +
         '<span id="authStatus" class="pt-2 md:pt-0"></span></div>' +
     '</div></header>';
+  html = '<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:text-purple-900 focus:px-4 focus:py-2 focus:m-2 focus:rounded focus:shadow">Skip to main content</a>' + html;
+  var st = document.createElement('style');
+  st.textContent = 'a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #7e22ce;outline-offset:2px}@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}';
+  document.head.appendChild(st);
+  document.addEventListener('DOMContentLoaded', function () {
+    var t = document.querySelector('main') || document.querySelector('header').nextElementSibling;
+    if (t && !document.getElementById('main-content')) { t.id = 'main-content'; t.setAttribute('tabindex', '-1'); }
+  });
   var s = document.currentScript;
   if (s) s.insertAdjacentHTML('beforebegin', html); else document.write(html);
 

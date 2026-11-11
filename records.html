@@ -410,8 +410,8 @@
                 : `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm">${esc(x.bow)} ${x.d} yds: ${x.v} of 2 verified${x.p ? ` (+${x.p} awaiting check)` : ''}</span>`).join('');
             $('p252Rows').innerHTML = rows.map(r => `<tr class="border-b border-slate-100">
                 <td class="p-3">${esc(gbDate(r.shoot_date))}</td><td class="p-3">${esc(r.bow_style)}</td>
-                <td class="p-3">${r.distance_yds ? esc(r.distance_yds) + ' yds' : '<span class="text-slate-400">not set</span>'}</td>
-                <td class="p-3">${esc(r.score)}${r._min ? ` <span class="text-slate-400">/ ${r._min}</span>` : ''}</td>
+                <td class="p-3">${r.distance_yds ? esc(r.distance_yds) + ' yds' : '<span class="text-slate-600">not set</span>'}</td>
+                <td class="p-3">${esc(r.score)}${r._min ? ` <span class="text-slate-600">/ ${r._min}</span>` : ''}</td>
                 <td class="p-3">${esc(r.round)}</td>
                 <td class="p-3">${r._min == null ? '–' : r._q ? '✅ Yes' : 'Not yet'}</td>
                 <td class="p-3">${r.verified ? '<span class="text-green-700 font-semibold">✅ Verified</span>' : '<span class="text-amber-700">Awaiting check</span>'}</td></tr>`).join('')
@@ -435,7 +435,7 @@
                 <td class="p-3">${esc(r.member_name)}</td>
                 <td class="p-3">${esc(gbDate(r.shoot_date))}</td><td class="p-3">${esc(r.bow_style)}</td>
                 <td class="p-3">${r.distance_yds ? esc(r.distance_yds) + ' yds' : '<span class="text-red-600">not set</span>'}</td>
-                <td class="p-3">${esc(r.score)}${r.min_score ? ` / ${esc(r.min_score)} ${r.qualifies ? '✅' : '❌'}` : ' <span class="text-slate-400">(no target)</span>'}${r.badge_earned ? ' 🏅' : ''}</td>
+                <td class="p-3">${esc(r.score)}${r.min_score ? ` / ${esc(r.min_score)} ${r.qualifies ? '✅' : '❌'}` : ' <span class="text-slate-600">(no target)</span>'}${r.badge_earned ? ' 🏅' : ''}</td>
                 <td class="p-3">${esc(r.round)}${r.notes ? `<div class="text-xs text-slate-500">${esc(r.notes)}</div>` : ''}</td>
                 <td class="p-3">${r.verified ? '✅ Verified' : '<span class="text-amber-700">Awaiting check</span>'}</td>
                 <td class="p-3 whitespace-nowrap">

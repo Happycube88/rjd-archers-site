@@ -28,7 +28,7 @@
             <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Club nights</h2><div id="nights" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
             <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">Records and security</h2><div id="other" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
         </div>
-        <div id="msg" class="text-sm text-center font-medium mt-3"></div>
+        <div id="msg" class="text-sm text-center font-medium mt-3" role="status" aria-live="polite"></div>
     </main>
 
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800 mt-12">
@@ -47,7 +47,7 @@
         $('gate').innerHTML = `<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 max-w-md mx-auto space-y-3">
             <h2 class="text-lg font-bold text-purple-950">${label}</h2>
             <p class="text-sm text-slate-600">Enter your email address and we will send you a sign-in link. No password needed.</p>
-            <input id="liEmail" type="email" autocomplete="email" placeholder="you@example.com" class="w-full border border-slate-300 p-2.5 rounded">
+            <input id="liEmail" aria-label="Your email address" type="email" autocomplete="email" placeholder="you@example.com" class="w-full border border-slate-300 p-2.5 rounded">
             <button id="liBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded">Email me a sign-in link</button></div>`;
         $('liBtn').onclick = async () => {
             const email = $('liEmail').value.trim(); if (!email) return say('Enter your email address.', true);
