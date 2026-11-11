@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RJD Archers – a friendly archery club in South Wales. Beginners courses, club nights, tournaments and records.">
+    <meta property="og:title" content="RJD Archers">
+    <meta property="og:description" content="RJD Archers – a friendly archery club in South Wales. Beginners courses, club nights, tournaments and records.">
+    <meta property="og:type" content="website">
     <title>RJD Archers | Welcome</title>
     <!-- Tailwind CSS CDN for rapid free styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,37 +16,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
-    <!-- Header / Navigation -->
-
-     <!-- Header / Navigation (White to Slate Fade with Purple Brand) -->
-    <header class="bg-gradient-to-r from-white via-slate-200 to-slate-400 text-slate-900 shadow-md border-b border-slate-200">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-            
-            <!-- Logo & Brand Name -->
-            <a href="index.html" class="flex items-center space-x-3 group">
-                <img src="logo.jpg" alt="RJD Archers Logo" class="h-10 w-auto object-contain">
-                <span class="text-2xl font-bold tracking-wide text-purple-900 group-hover:text-purple-700 transition">RJD Archers</span>
-            </a>
-
-            <!-- Navigation Links in Purple -->
-            <nav class="mt-4 md:mt-0 flex flex-wrap gap-4 text-sm font-medium items-center">
-                <a href="index.html" class="text-purple-950 font-bold underline">Home</a>
-                <a href="Beginners.html" class="text-purple-700 hover:text-purple-950">Beginner's Courses</a>
-                <a href="fees.html" class="text-purple-700 hover:text-purple-950">Fees & Costs</a>
-                <a href="tournaments.html" class="text-purple-700 hover:text-purple-950">Tournaments & Results</a>
-                <a href="records.html" class="text-purple-700 hover:text-purple-950">Club Records</a>
-                <a href="location.html" class="text-purple-700 hover:text-purple-950">Venues & Location</a>
-                <a href="links.html" class="text-purple-700 hover:text-purple-950">Local Clubs & Map</a>
-                              <a href="calendar.html" class="text-purple-700 hover:text-purple-950">Calendar</a>
-                <a href="policies.html" class="text-purple-700 hover:text-purple-950">Welfare & Policies</a>
-                <a href="news.html" class="text-purple-700 hover:text-purple-950">News</a>
-                <a href="contacts.html" class="text-purple-700 hover:text-purple-950">Contact Us</a>
-                
-                  <span id="authStatus"></span>
-
-            </nav>
-        </div>
-    </header>
+    <script src="/site-nav.js"></script>
 
     
 
@@ -52,6 +26,15 @@
         <div class="max-w-4xl mx-auto text-center md:text-left">
             <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-white drop-shadow-md">Welcome to RJD Archers</h1>
             <p class="text-lg text-purple-100 font-medium max-w-2xl drop-shadow">A friendly family club welcoming children over 8 and adults of all skill levels across South Wales.</p>
+        </div>
+    </section>
+
+
+    <!-- What's on: next club night and next tournament, read from the club database -->
+    <section id="whatson" class="hidden max-w-6xl mx-auto px-4 -mt-8 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="wnNight" class="hidden bg-white rounded-xl shadow-md border border-slate-200 border-l-4 border-l-green-500 p-5"></div>
+            <div id="wnTour" class="hidden bg-white rounded-xl shadow-md border border-slate-200 border-l-4 border-l-indigo-500 p-5"></div>
         </div>
     </section>
 
@@ -74,11 +57,11 @@
             <ul class="space-y-3 text-slate-600">
                 <li class="flex items-start">
                     <span class="font-semibold text-slate-900 w-32 shrink-0">Summer Season:</span>
-                    <span>May to mid-September, Tuesdays & Fridays (18:00 – 20:00 or dusk) at The Old Dog Track, Rhydyfelin.</span>
+                    <span>June to September, Tuesdays & Fridays (18:00 – 20:00 or dusk) at The Old Dog Track, Rhydyfelin.</span>
                 </li>
                 <li class="flex items-start">
                     <span class="font-semibold text-slate-900 w-32 shrink-0">Winter Season:</span>
-                    <span>Mid-September to May 1st, Tuesdays & Fridays (18:00 – 20:00) at Llantrisant Leisure Centre.</span>
+                    <span>October to May, Tuesdays & Fridays (18:00 – 20:00) at Llantrisant Leisure Centre.</span>
                 </li>
             </ul>
 
@@ -114,5 +97,43 @@
     </footer>
 
 
+
+<script>
+(function () {
+    var sb = window.supabase && window.supabase.createClient('https://onepmhddrqmvhyhagkth.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw');
+    if (!sb) return;
+    function esc(x) { return String(x == null ? '' : x).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function day(d) { return new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }); }
+    function ukNow() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/London', dateStyle: 'short', timeStyle: 'short' }).format(new Date()).replace(' ', 'T'); }
+    var today = new Date().toISOString().slice(0, 10), shown = false;
+    function reveal() { shown = true; document.getElementById('whatson').classList.remove('hidden'); }
+
+    sb.from('club_nights').select('night_date,kind,venue,range_distance,range_unit,target_size,target_type,start_time,end_time,cancelled,cancel_reason')
+      .gte('night_date', today).order('night_date').limit(6).then(function (r) {
+        var rows = r.data || []; if (r.error || !rows.length) return;
+        var n = rows.filter(function (x) { return !x.cancelled; })[0], first = rows[0], box = document.getElementById('wnNight');
+        var h = '<p class="text-xs font-semibold uppercase tracking-widest text-green-700">Next club night</p>';
+        if (first.cancelled) h += '<p class="mt-1 text-sm font-semibold text-red-700">' + esc(day(first.night_date)) + ' is cancelled' + (first.cancel_reason ? ': ' + esc(first.cancel_reason) : '') + '</p>';
+        if (n) {
+            var t = n.start_time ? n.start_time.slice(0, 5) + (n.end_time ? ' to ' + n.end_time.slice(0, 5) : '') : '';
+            var what = n.kind === 'indoor' ? 'Indoor, ' + n.range_distance + ' ' + n.range_unit + ', ' + esc(n.target_size) + ' ' + esc(n.target_type) : 'Outdoor, ' + n.range_distance + ' ' + n.range_unit;
+            var prev = new Date(new Date(n.night_date + 'T00:00:00Z') - 864e5).toISOString().slice(0, 10), now = ukNow();
+            var state = now < prev + 'T17:00' ? 'Booking opens 5pm the day before' : now < n.night_date + 'T17:00' ? 'Booking is open now' : 'Booking closed';
+            h += '<p class="text-xl font-bold text-slate-900 mt-1">' + esc(day(n.night_date)) + '</p><p class="text-sm text-slate-600">' + esc(t) + (t ? ' &middot; ' : '') + what + (n.venue ? ' &middot; ' + esc(n.venue) : '') + '</p>' +
+                 '<p class="text-sm text-slate-500 mt-1">' + state + '</p><a href="/db/club-nights.html" class="inline-block mt-3 text-sm font-semibold text-green-800 hover:underline">Book a place &rarr;</a>';
+        }
+        box.innerHTML = h; box.classList.remove('hidden'); reveal();
+    });
+
+    sb.from('tournaments').select('id,name,event_date,closing_date').gte('event_date', today).order('event_date').limit(1).then(function (r) {
+        var t = (r.data || [])[0]; if (r.error || !t) return;
+        var closed = t.closing_date && t.closing_date < today, box = document.getElementById('wnTour');
+        box.innerHTML = '<p class="text-xs font-semibold uppercase tracking-widest text-indigo-700">Next tournament</p><p class="text-xl font-bold text-slate-900 mt-1">' + esc(t.name) + '</p>' +
+            '<p class="text-sm text-slate-600">' + esc(day(t.event_date)) + (t.closing_date ? ' &middot; entries ' + (closed ? 'closed' : 'close ' + esc(day(t.closing_date))) : '') + '</p>' +
+            '<a href="' + (closed ? '/tournaments.html' : '/db/tournament-enter.html?t=' + encodeURIComponent(t.id)) + '" class="inline-block mt-3 text-sm font-semibold text-indigo-800 hover:underline">' + (closed ? 'See the tournaments' : 'Enter online') + ' &rarr;</a>';
+        box.classList.remove('hidden'); reveal();
+    });
+})();
+</script>
 </body>
 </html>

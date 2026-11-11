@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setting up 2FA | RJD Archers</title>
+    <meta name="description" content="How to set up the authenticator app that protects changes to your RJD Archers details. Takes about five minutes.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/auth-status.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+    <script src="/site-nav.js"></script>
+    <main class="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        <div>
+            <h1 class="text-3xl font-bold text-purple-950">Setting up 2FA</h1>
+            <p class="text-slate-600 mt-2">2FA (two-factor authentication) means a change to club records needs two things: a link sent to your email, and a six-digit code from an app on your phone. It protects your details, and especially children's details, from anyone who might get into your email. You set it up once and it takes about five minutes.</p>
+        </div>
+
+        <section class="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
+            <h2 class="text-xl font-bold text-purple-950">Before you start</h2>
+            <p class="text-sm text-slate-700">Install a free authenticator app on your phone. Any of these work:</p>
+            <ul class="list-disc ml-6 text-sm text-slate-700 space-y-1">
+                <li>Google Authenticator</li><li>Microsoft Authenticator</li><li>Authy</li><li>1Password or Bitwarden, if you already use one</li>
+            </ul>
+            <p class="text-sm text-slate-600">Use a phone you will keep. Some apps (Google, Microsoft, Authy) can back the codes up to your account, which makes a lost or new phone much easier.</p>
+        </section>
+
+        <section class="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+            <h2 class="text-xl font-bold text-purple-950">Step by step</h2>
+            <ol class="list-decimal ml-6 text-sm text-slate-700 space-y-3">
+                <li><b>Sign in.</b> Go to the <a class="underline text-purple-700" href="/members.html">Members area</a>, type your email address and press the button. We send you a sign-in link. Open it on the same device.</li>
+                <li><b>Open the Security page.</b> From the Members area press <i>Security and 2FA</i>.</li>
+                <li><b>Press set up.</b> A square barcode (a QR code) appears on screen.</li>
+                <li><b>Scan it.</b> In your authenticator app press <i>Add</i> or the plus sign, choose <i>Scan a QR code</i> and point the phone at the screen. If you are on the phone itself, use the text code shown under the barcode instead.</li>
+                <li><b>Type the six digits.</b> The app shows a six-digit number that changes every 30 seconds. Type the current one into the box and press verify.</li>
+                <li><b>Done.</b> The header shows a green tick next to <i>My account</i>. You only need a code when you want to change something, and the app gives you a fresh one each time.</li>
+            </ol>
+        </section>
+
+        <section class="bg-white rounded-xl border border-slate-200 p-6 space-y-3">
+            <h2 class="text-xl font-bold text-purple-950">Common questions</h2>
+            <div class="text-sm text-slate-700 space-y-3">
+                <p><b>The code is wrong.</b> Codes last 30 seconds. Wait for a new one and type it straight away. Check your phone's clock is set to automatic.</p>
+                <p><b>Do I need a code just to look at the site?</b> No. Looking at the records, booking pages and tournaments does not need it. A code is needed when you add or change information, such as entering a tournament, booking a club night or updating your details.</p>
+                <p><b>I have a new phone or lost my phone.</b> Do not worry, your records are safe. Ask a committee member to reset your 2FA, then set it up again on the new phone.</p>
+                <p><b>I am a parent.</b> Set it up with your own email address. You can then look after your child's details, scores, tournament entries and club night bookings.</p>
+                <p><b>Is it really needed?</b> Yes. The club holds names, dates of birth and phone numbers, including children's, so every change is protected this way.</p>
+            </div>
+        </section>
+
+        <div class="text-center"><a href="/db/security.html?next=/members.html" class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-lg">Go to the Security page</a></div>
+    </main>
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800 mt-8"><p>&copy; 2026 RJD Archers. All rights reserved.</p></footer>
+</body>
+</html>
