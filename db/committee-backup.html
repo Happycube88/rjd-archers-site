@@ -24,11 +24,24 @@
         </div>
         <ul id="progress" class="text-sm space-y-1"></ul>
         <div id="done" class="hidden space-y-3">
-            <button id="jsonBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded font-semibold">Download everything (one JSON file)</button>
+            <div class="bg-slate-50 border border-slate-200 rounded p-3 space-y-2">
+                <label for="pass" class="block text-sm font-semibold">Passphrase to lock the file (recommended, at least 12 characters)</label>
+                <input id="pass" type="password" autocomplete="new-password" class="w-full border border-slate-300 p-2 rounded" placeholder="Choose a long passphrase and store it in your password manager">
+                <p class="text-xs text-slate-500">The file is locked on this computer before it is saved. <b>If the passphrase is lost the backup cannot be opened</b>, so share it with a second committee member in a safe way.</p>
+            </div>
+            <button id="jsonBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded font-semibold">Download everything (locked file)</button>
             <div><p class="text-xs text-slate-500 mb-1">Or one table at a time, as a spreadsheet (CSV):</p><div id="csvs" class="flex flex-wrap gap-2"></div></div>
         </div>
     </div>
-    <div id="msg" class="text-sm text-center font-medium"></div>
+    <details class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-sm">
+        <summary class="cursor-pointer font-semibold">Open a locked backup (check it works)</summary>
+        <div class="mt-3 space-y-2">
+            <label for="encFile" class="block">Backup file (.rjdbak)</label><input id="encFile" type="file" accept=".rjdbak">
+            <label for="decPass" class="block">Passphrase</label><input id="decPass" type="password" autocomplete="off" class="w-full border border-slate-300 p-2 rounded">
+            <button id="decBtn" type="button" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-semibold">Unlock and save as JSON</button>
+        </div>
+    </details>
+    <div id="msg" class="text-sm text-center font-medium" role="status" aria-live="polite"></div>
 </div>
 <script>
     const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
@@ -74,10 +87,37 @@
         $('done').classList.remove('hidden');
         say(failed.length ? 'Backup made, but these tables could not be read: ' + failed.join(', ') : 'Backup ready. Download it below and store it safely.', failed.length > 0);
     });
-    $('jsonBtn').addEventListener('click', () => {
-        download('rjd-archers-backup-' + stamp() + '.json', JSON.stringify({ exported_at: new Date().toISOString(), project: 'rjd-archers', tables: data }, null, 1), 'application/json');
+    const b64 = u8 => btoa(String.fromCharCode.apply(null, u8));
+    const unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+    async function key(pass, salt) {
+        const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+        return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    }
+    async function lock(text, pass) {
+        const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+        const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await key(pass, salt), new TextEncoder().encode(text)));
+        return JSON.stringify({ format: 'rjd-backup-v1', kdf: 'PBKDF2-SHA256-600000', cipher: 'AES-256-GCM', salt: b64(salt), iv: b64(iv), data: b64(ct) });
+    }
+    $('jsonBtn').addEventListener('click', async () => {
+        const text = JSON.stringify({ exported_at: new Date().toISOString(), project: 'rjd-archers', tables: data }, null, 1);
+        const pass = $('pass').value;
+        try {
+            if (pass.length >= 12) download('rjd-archers-backup-' + stamp() + '.rjdbak', await lock(text, pass), 'application/octet-stream');
+            else if (pass.length > 0) return say('The passphrase needs at least 12 characters.', true);
+            else if (confirm('No passphrase: the file will be saved UNLOCKED and contains personal data. Save it unlocked anyway?')) download('rjd-archers-backup-' + stamp() + '.json', text, 'application/json');
+            else return;
+        } catch (e) { return say('Could not lock the file: ' + e.message, true); }
         try { localStorage.setItem('rjdLastBackup', new Date().toISOString()); } catch (e) {}
         showLast();
+    });
+    $('decBtn').addEventListener('click', async () => {
+        const f = $('encFile').files[0]; if (!f) return say('Choose a .rjdbak file first.', true);
+        try {
+            const o = JSON.parse(await f.text());
+            const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(o.iv) }, await key($('decPass').value, unb64(o.salt)), unb64(o.data));
+            download('rjd-archers-backup-unlocked.json', new TextDecoder().decode(pt), 'application/json');
+            say('Unlocked. Delete the unlocked copy once you have checked it.');
+        } catch (e) { say('Could not unlock: wrong passphrase or damaged file.', true); }
     });
     $('csvs').addEventListener('click', e => { const t = e.target.dataset.t; if (t) download('rjd-' + t + '-' + stamp() + '.csv', csv(data[t] || []), 'text/csv'); });
     function showLast() {
