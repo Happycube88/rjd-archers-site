@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Website Messages | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-4xl mx-auto space-y-5">
+    <p class="text-sm"><a class="underline text-purple-700" href="/committee.html">&larr; Committee area</a></p>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-2">
+        <h1 class="text-2xl font-bold text-purple-950">Messages from the Contact us form</h1>
+        <p class="text-sm text-slate-600">Reply by email using the address shown, then set the status to Replied. Messages are also emailed to the club account when the email service is on.</p>
+        <div id="gate" class="text-sm"></div>
+    </div>
+    <div id="work" class="hidden space-y-3">
+        <label class="text-sm"><input type="checkbox" id="showClosed"> Show closed messages</label>
+        <div id="list" class="space-y-3"></div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium" role="status" aria-live="polite"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    let rows = [];
+    function render() {
+        const show = $('showClosed').checked;
+        const r = rows.filter(m => show || m.status !== 'closed');
+        $('list').innerHTML = r.map(m => `
+            <div class="bg-white p-4 rounded-xl border ${m.status === 'new' ? 'border-purple-300' : 'border-slate-200'} space-y-2">
+                <div class="flex flex-wrap justify-between gap-2 text-sm">
+                    <div><b>${esc(m.name)}</b> &middot; <a class="underline text-purple-700" href="mailto:${esc(m.email)}?subject=${encodeURIComponent('Re: your RJD Archers enquiry')}">${esc(m.email)}</a></div>
+                    <div class="text-slate-500">${esc(m.topic)} &middot; ${new Date(m.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                </div>
+                <p class="whitespace-pre-wrap text-sm">${esc(m.message)}</p>
+                <div class="flex gap-3 items-center text-sm">
+                    <label for="st${esc(m.id)}">Status</label>
+                    <select id="st${esc(m.id)}" class="st border border-slate-300 rounded p-1" data-id="${esc(m.id)}">${['new', 'replied', 'closed'].map(s => `<option ${m.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
+                    <button type="button" class="del text-red-600 underline" data-id="${esc(m.id)}">Delete</button>
+                </div>
+            </div>`).join('') || '<p class="text-sm text-slate-500 text-center">No messages.</p>';
+    }
+    async function load() {
+        const { data, error } = await sb.from('contact_messages').select('*').order('created_at', { ascending: false });
+        if (error) return say('Could not load messages. Enter your 2FA code and try again.', true);
+        rows = data; render();
+    }
+    $('showClosed').addEventListener('change', render);
+    $('list').addEventListener('change', async e => {
+        if (!e.target.classList.contains('st')) return;
+        const { data, error } = await sb.from('contact_messages').update({ status: e.target.value }).eq('id', e.target.dataset.id).select('id');
+        if (error || !data || !data.length) { say('Not saved. You may need to enter your 2FA code.', true); return load(); }
+        say('Saved.'); await load();
+    });
+    $('list').addEventListener('click', async e => {
+        if (!e.target.classList.contains('del')) return;
+        if (!confirm('Delete this message for good?')) return;
+        const { data, error } = await sb.from('contact_messages').delete().eq('id', e.target.dataset.id).select('id');
+        if (error || !data || !data.length) return say('Not deleted. You may need to enter your 2FA code.', true);
+        say('Deleted.'); load();
+    });
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { $('gate').innerHTML = '<a class="underline text-purple-700" href="/committee.html">Sign in on the Committee area first.</a>'; return; }
+        const { data: isC } = await sb.rpc('is_committee');
+        if (isC !== true) { $('gate').textContent = 'This page is for committee members only.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        $('gate').innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed.</span> <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-messages.html">Enter your 2FA code</a>';
+        $('work').classList.remove('hidden'); load();
+    }
+    start();
+</script>
+</body>
+</html>
