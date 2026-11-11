@@ -31,7 +31,7 @@
     btn.appendChild(mk('span', '', ' \u25BE'));
     el.appendChild(btn);
 
-    var menu = mk('div', 'absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden' + (open ? '' : ' hidden'));
+    var menu = mk('div', 'absolute left-0 md:left-auto md:right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden' + (open ? '' : ' hidden'));
     menu.appendChild(mk('div', 'px-3 py-2 text-xs text-slate-500 border-b border-slate-100 break-all', session.user.email));
     if (level === 'aal2') menu.appendChild(mk('div', 'px-3 py-2 text-xs text-green-700 font-semibold border-b border-slate-100', '2FA verified \u2713'));
     else if (level === 'aal1') menu.appendChild(link('/db/security.html?next=' + encodeURIComponent(location.pathname), 'Verify 2FA to make changes', 'block px-3 py-2 text-xs text-amber-700 font-semibold border-b border-slate-100 hover:bg-amber-50'));
