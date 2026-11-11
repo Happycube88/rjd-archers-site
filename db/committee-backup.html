@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Download a Backup | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-3xl mx-auto space-y-5">
+    <p class="text-sm"><a class="underline text-purple-700" href="/committee.html">&larr; Committee area</a></p>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+        <h1 class="text-2xl font-bold text-purple-950">Download a backup</h1>
+        <p class="text-sm text-slate-600">Saves a copy of the club's data (members, parents, records, 252 scores, tournaments, entries, club nights, bookings, guests, enquiries) as a file on this computer. Do this at least once a month and after any big change.</p>
+        <div class="text-sm bg-amber-50 border border-amber-200 rounded p-3 text-amber-900"><b>Handle with care.</b> The file holds names, dates of birth, phone numbers and children's details. Keep it on an encrypted or password-protected drive, never email it, and delete old copies you no longer need.</div>
+        <div id="gate" class="text-sm"></div>
+    </div>
+    <div id="work" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-4">
+        <div class="flex flex-wrap gap-3 items-center">
+            <button id="goBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Create the backup</button>
+            <span id="last" class="text-xs text-slate-500"></span>
+        </div>
+        <ul id="progress" class="text-sm space-y-1"></ul>
+        <div id="done" class="hidden space-y-3">
+            <button id="jsonBtn" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded font-semibold">Download everything (one JSON file)</button>
+            <div><p class="text-xs text-slate-500 mb-1">Or one table at a time, as a spreadsheet (CSV):</p><div id="csvs" class="flex flex-wrap gap-2"></div></div>
+        </div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const TABLES = ['members', 'member_guardians', 'enquiries', 'records', 'rounds', 'member_252_progress', 'badge_252_awards', 'badge_252_thresholds',
+        'tournaments', 'tournament_entries', 'club_nights', 'club_night_bookings', 'club_night_rules', 'club_night_defaults', 'shoot_guests'];
+    let data = {};
+
+    const stamp = () => new Date().toISOString().slice(0, 10);
+    function download(name, text, type) {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    }
+    function csv(rows) {
+        if (!rows.length) return '';
+        const cols = Array.from(rows.reduce((s, r) => { Object.keys(r).forEach(k => s.add(k)); return s; }, new Set()));
+        const q = v => { if (v === null || v === undefined) return ''; v = typeof v === 'object' ? JSON.stringify(v) : String(v); v = v.replace(/^([=+\-@])/, "'$1"); return '"' + v.replace(/"/g, '""') + '"'; };
+        return [cols.join(',')].concat(rows.map(r => cols.map(c => q(r[c])).join(','))).join('\r\n');
+    }
+    async function fetchAll(t) {
+        const out = []; const size = 1000;
+        for (let from = 0; ; from += size) {
+            const { data: rows, error } = await sb.from(t).select('*').range(from, from + size - 1);
+            if (error) throw new Error(t + ': ' + error.message);
+            out.push(...rows); if (rows.length < size) break;
+        }
+        return out;
+    }
+    $('goBtn').addEventListener('click', async () => {
+        $('goBtn').disabled = true; $('done').classList.add('hidden'); say(''); data = {}; $('progress').innerHTML = '';
+        let failed = [];
+        for (const t of TABLES) {
+            const li = document.createElement('li'); li.textContent = t + ' …'; $('progress').appendChild(li);
+            try { data[t] = await fetchAll(t); li.textContent = '✓ ' + t + ' (' + data[t].length + ' rows)'; li.className = 'text-green-700'; }
+            catch (e) { failed.push(t); li.textContent = '✗ ' + e.message; li.className = 'text-red-600'; }
+        }
+        $('goBtn').disabled = false;
+        if (failed.length === TABLES.length) return say('Nothing could be read. Enter your 2FA code and try again.', true);
+        $('csvs').innerHTML = Object.keys(data).map(t => `<button type="button" class="csv text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded px-2 py-1" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+        $('done').classList.remove('hidden');
+        say(failed.length ? 'Backup made, but these tables could not be read: ' + failed.join(', ') : 'Backup ready. Download it below and store it safely.', failed.length > 0);
+    });
+    $('jsonBtn').addEventListener('click', () => {
+        download('rjd-archers-backup-' + stamp() + '.json', JSON.stringify({ exported_at: new Date().toISOString(), project: 'rjd-archers', tables: data }, null, 1), 'application/json');
+        try { localStorage.setItem('rjdLastBackup', new Date().toISOString()); } catch (e) {}
+        showLast();
+    });
+    $('csvs').addEventListener('click', e => { const t = e.target.dataset.t; if (t) download('rjd-' + t + '-' + stamp() + '.csv', csv(data[t] || []), 'text/csv'); });
+    function showLast() {
+        let v = null; try { v = localStorage.getItem('rjdLastBackup'); } catch (e) {}
+        $('last').textContent = v ? 'Last backup downloaded on this computer: ' + new Date(v).toLocaleDateString('en-GB') : 'No backup downloaded on this computer yet.';
+    }
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { $('gate').innerHTML = '<a class="underline text-purple-700" href="/committee.html">Sign in on the Committee area first.</a>'; return; }
+        const { data: isC } = await sb.rpc('is_committee');
+        if (isC !== true) { $('gate').textContent = 'This page is for committee members only.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        $('gate').innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed.</span> <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-backup.html">Enter your 2FA code</a>';
+        $('work').classList.remove('hidden'); showLast();
+    }
+    start();
+</script>
+</body>
+</html>
