@@ -3,34 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="RJD Archers club calendar: club nights, tournaments and events.">
+    <meta name="description" content="RJD Archers club calendar: club nights and tournaments for the next month, six months or twelve months.">
     <meta property="og:title" content="RJD Archers">
-    <meta property="og:description" content="RJD Archers club calendar: club nights, tournaments and events.">
+    <meta property="og:description" content="RJD Archers club calendar: club nights and tournaments for the next month, six months or twelve months.">
     <meta property="og:type" content="website">
-    <title>Club Calendar & Events | RJD Archers</title>
+    <title>Club Calendar | RJD Archers</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        summary { list-style: none; }
+        summary::-webkit-details-marker { display: none; }
+        details[open] .chev { transform: rotate(180deg); }
+        .chev { transition: transform .15s; }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
     <script src="/site-nav.js"></script>
 
-    <!-- Page Header -->
-    <section class="bg-slate-800 text-white py-10 px-4">
-        <div class="max-w-4xl mx-auto text-center">
-            <h1 class="text-3xl font-bold">Club Shooting Calendar & Events</h1>
-            <p class="text-slate-300 mt-2">Check upcoming target days, line times, and club competitions.</p>
+    <section class="bg-gradient-to-r from-purple-950 via-purple-900 to-purple-800 py-10 px-4">
+        <div class="max-w-4xl mx-auto text-center md:text-left">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white drop-shadow-md">Club Calendar</h1>
+            <p class="text-lg text-purple-100 mt-2">Club nights and tournaments, kept up to date by the committee.</p>
         </div>
     </section>
 
-    <!-- Main Content -->
-    <main class="max-w-5xl mx-auto px-4 py-12">
-        <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-100 space-y-4">
-            <h2 class="text-xl font-bold text-slate-900 mb-2">Live Schedule</h2>
-            
-            <!-- PASTE YOUR GOOGLE CALENDAR IFRAME BELOW -->
-            <div class="w-full overflow-hidden rounded-lg">
-          <iframe src=https://calendar.google.com/calendar/embed?src=rjdarchers.members%40gmail.com&ctz=Europe%2FLondon style="border: 0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-5">
+
+        <!-- Controls -->
+        <div class="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-slate-200 space-y-4">
+            <div>
+                <p class="text-sm font-semibold text-slate-700 mb-2" id="viewLabel">Show me</p>
+                <div class="flex flex-wrap gap-2" role="group" aria-labelledby="viewLabel">
+                    <button type="button" data-view="1"  class="viewBtn px-4 py-2 rounded-lg border text-sm font-semibold">Next month</button>
+                    <button type="button" data-view="6"  class="viewBtn px-4 py-2 rounded-lg border text-sm font-semibold">Next 6 months</button>
+                    <button type="button" data-view="12" class="viewBtn px-4 py-2 rounded-lg border text-sm font-semibold">Next 12 months</button>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                    <label class="flex items-center gap-2"><input type="checkbox" id="fNights" checked class="h-4 w-4"> <span class="inline-block w-3 h-3 rounded-sm bg-green-500" aria-hidden="true"></span> Club nights</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" id="fTours" checked class="h-4 w-4"> <span class="inline-block w-3 h-3 rounded-sm bg-indigo-500" aria-hidden="true"></span> Tournaments</label>
+                </div>
+                <button type="button" id="icsBtn" class="text-sm font-semibold text-purple-800 border border-purple-300 hover:bg-purple-50 rounded-lg px-3 py-2">Add these to my calendar (.ics)</button>
             </div>
         </div>
+
+        <p id="status" class="text-sm text-slate-600" role="status" aria-live="polite">Loading the calendar&hellip;</p>
+        <div id="list" class="space-y-6"></div>
+        <p id="note" class="hidden text-sm text-slate-600 bg-purple-50 border border-purple-100 rounded-lg p-3"></p>
+
+        <p class="text-sm text-slate-500">Booking a club night or entering a tournament needs a <a class="underline text-purple-700" href="/members.html">member login</a>. Dates can change, so check here before you travel.</p>
     </main>
 
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
@@ -39,5 +60,181 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/auth-status.js"></script>
+    <script>
+    (function () {
+        // Reads the club's own database (club nights and published tournaments). Both are public to read.
+        var SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+        var HEAD = { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY };
+
+        var $ = function (id) { return document.getElementById(id); };
+        var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+
+        // ----- dates (all as YYYY-MM-DD text, UK calendar) -----
+        var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London' }).format(new Date());
+        function addMonths(iso, n) { var d = new Date(iso + 'T12:00:00Z'); d.setUTCMonth(d.getUTCMonth() + n); return d.toISOString().slice(0, 10); }
+        function addDays(iso, n) { var d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+        function local(iso) { return new Date(iso + 'T12:00:00'); }
+        function longDay(iso) { return local(iso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+        function shortDay(iso) { return local(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }); }
+        function monthName(key) { return new Date(key + '-15T12:00:00').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); }
+        function hm(t) { return t ? String(t).slice(0, 5) : ''; }
+        function money(x) { return '£' + Number(x).toFixed(2).replace(/\.00$/, ''); }
+
+        // ----- state -----
+        var view = 1, nights = [], tours = [], partial = false;
+        var viewMonths = { 1: 1, 6: 6, 12: 12 };
+        function viewEnd() { return addMonths(today, viewMonths[view]); }
+
+        // ----- loading -----
+        function get(path) {
+            return fetch(SUPABASE_URL + '/rest/v1/' + path, { headers: HEAD }).then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            });
+        }
+        function load() {
+            var end = addMonths(today, 12);
+            var nq = 'club_nights?select=id,night_date,kind,venue,range_distance,range_unit,target_size,target_type,max_places,fee,notes,start_time,end_time,cancelled,cancel_reason'
+                + '&night_date=gte.' + today + '&night_date=lte.' + end + '&order=night_date.asc&limit=500';
+            var tq = 'tournaments?select=id,name,event_date,venue,rounds,closing_date,organiser_name,fee_junior,fee_adult,format_notes'
+                + '&event_date=gte.' + today + '&event_date=lte.' + end + '&order=event_date.asc&limit=100';
+            return Promise.all([
+                get(nq).catch(function () { return null; }),
+                get(tq).catch(function () { return null; })
+            ]).then(function (r) {
+                if (r[0] === null && r[1] === null) { $('status').textContent = 'Sorry, the calendar could not be loaded. Please refresh the page, or see the Tournaments page.'; $('status').className = 'text-sm text-red-700 font-medium'; return; }
+                partial = r[0] === null || r[1] === null;
+                nights = r[0] || []; tours = r[1] || [];
+                render();
+            });
+        }
+
+        // ----- building the list -----
+        function events() {
+            var end = viewEnd(), out = [];
+            if ($('fNights').checked) nights.forEach(function (n) { if (n.night_date <= end) out.push({ type: 'night', date: n.night_date, n: n }); });
+            if ($('fTours').checked) tours.forEach(function (t) { if (t.event_date <= end) out.push({ type: 'tour', date: t.event_date, t: t }); });
+            out.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.type === 'tour' ? -1 : 1); });
+            return out;
+        }
+        function nightTitle(n) { return (n.kind === 'indoor' ? 'Indoor' : 'Outdoor') + ' club night'; }
+        function nightTime(n) { return n.start_time ? hm(n.start_time) + (n.end_time ? ' to ' + hm(n.end_time) : '') : ''; }
+        function nightWhat(n) {
+            var bits = [];
+            if (n.range_distance) bits.push(n.range_distance + ' ' + n.range_unit);
+            if (n.kind === 'indoor' && n.target_size) bits.push(n.target_size + (n.target_type ? ' ' + n.target_type : ''));
+            return bits.join(', ');
+        }
+        function row(label, value) { return value ? '<div><dt class="inline font-semibold text-slate-700">' + label + ':</dt> <dd class="inline">' + value + '</dd></div>' : ''; }
+
+        function nightHtml(ev, open) {
+            var n = ev.n, cancelled = !!n.cancelled, t = nightTime(n);
+            var pill = cancelled ? '<span class="text-xs font-semibold bg-red-100 text-red-800 rounded-full px-2 py-0.5">Cancelled</span>'
+                : '<span class="text-xs font-semibold bg-green-100 text-green-800 rounded-full px-2 py-0.5">Club night</span>';
+            var sum = '<span class="font-bold text-slate-900 w-28 shrink-0">' + esc(shortDay(ev.date)) + '</span>' + pill +
+                '<span class="' + (cancelled ? 'line-through text-slate-500' : 'text-slate-800') + '">' + esc(nightTitle(n)) + (t ? ', ' + esc(t) : '') + '</span>';
+            var body = '<dl class="text-sm text-slate-600 space-y-1">' +
+                (cancelled ? '<div class="font-semibold text-red-700">Cancelled' + (n.cancel_reason ? ': ' + esc(n.cancel_reason) : '') + '</div>' : '') +
+                row('Date', esc(longDay(ev.date))) + row('Time', esc(t)) + row('Shooting', esc(nightWhat(n))) + row('Venue', esc(n.venue)) +
+                row('Places', n.max_places ? 'up to ' + esc(n.max_places) : '') + row('Cost', n.fee != null ? esc(money(n.fee)) : '') + row('Note', esc(n.notes)) + '</dl>' +
+                (cancelled ? '' : '<p class="mt-3 text-sm"><a class="font-semibold text-green-800 hover:underline" href="/db/club-nights.html">Book a place &rarr;</a> <span class="text-slate-500">(opens 5pm the day before)</span></p>');
+            return card('green', sum, body, open);
+        }
+        function tourHtml(ev, open) {
+            var t = ev.t, closed = t.closing_date && t.closing_date < today;
+            var rounds = Array.isArray(t.rounds) && t.rounds.length ? t.rounds.map(esc).join(', ') : '';
+            var sum = '<span class="font-bold text-slate-900 w-28 shrink-0">' + esc(shortDay(ev.date)) + '</span>' +
+                '<span class="text-xs font-semibold bg-indigo-100 text-indigo-800 rounded-full px-2 py-0.5">Tournament</span>' +
+                '<span class="text-slate-800 font-semibold">' + esc(t.name) + '</span>';
+            var body = '<dl class="text-sm text-slate-600 space-y-1">' +
+                row('Date', esc(longDay(ev.date))) + row('Venue', esc(t.venue)) +
+                row('Entries close', t.closing_date ? esc(longDay(t.closing_date)) + (closed ? ' (closed)' : '') : '') +
+                row('Rounds', rounds) + row('Entry fee', esc(money(t.fee_junior)) + ' juniors, ' + esc(money(t.fee_adult)) + ' adults, per round') +
+                row('Organiser', esc(t.organiser_name)) + '</dl>' +
+                (t.format_notes ? '<p class="mt-2 text-sm text-slate-600" style="white-space:pre-line">' + esc(t.format_notes) + '</p>' : '') +
+                '<p class="mt-3 text-sm">' + (closed ? '<span class="text-slate-500">Online entries are closed.</span> ' : '<a class="font-semibold text-indigo-800 hover:underline" href="/db/tournament-enter.html?t=' + encodeURIComponent(t.id) + '">Enter online &rarr;</a> ') +
+                '<a class="text-indigo-800 hover:underline" href="/tournaments.html">All tournament information</a></p>';
+            return card('indigo', sum, body, open);
+        }
+        function card(colour, sum, body, open) {
+            return '<details class="bg-white rounded-xl border border-slate-200 border-l-4 ' + (colour === 'green' ? 'border-l-green-500' : 'border-l-indigo-500') + ' shadow-sm"' + (open ? ' open' : '') + '>' +
+                '<summary class="cursor-pointer p-3 sm:p-4 flex flex-wrap items-center gap-x-3 gap-y-1">' + sum +
+                '<span class="chev ml-auto text-slate-400" aria-hidden="true">&#9662;</span></summary>' +
+                '<div class="px-4 pb-4 pt-1 border-t border-slate-100">' + body + '</div></details>';
+        }
+
+        function render() {
+            var evs = events(), open = view === 1, html = '', month = '', i;
+            for (i = 0; i < evs.length; i++) {
+                var key = evs[i].date.slice(0, 7);
+                if (key !== month) { if (month) html += '</div>'; month = key; html += '<h2 class="text-xl font-bold text-purple-950 mt-2">' + esc(monthName(key)) + '</h2><div class="space-y-2">'; }
+                html += evs[i].type === 'night' ? nightHtml(evs[i], open) : tourHtml(evs[i], open);
+            }
+            if (month) html += '</div>';
+            $('list').innerHTML = html;
+
+            var span = view === 1 ? 'the next month' : 'the next ' + view + ' months';
+            var count = evs.filter(function (e) { return !(e.type === 'night' && e.n.cancelled); }).length;
+            $('status').className = 'text-sm text-slate-600';
+            $('status').textContent = evs.length
+                ? count + (count === 1 ? ' event' : ' events') + ' in ' + span + ', up to ' + longDay(addDays(viewEnd(), 0)) + '.' + (partial ? ' Some events could not be loaded, so this list may be incomplete.' : '')
+                : 'Nothing is listed for ' + span + (($('fNights').checked || $('fTours').checked) ? ' yet.' : '. Tick club nights or tournaments above.');
+
+            // later months may have fewer club nights if they have not been added yet
+            var lastNight = nights.length ? nights[nights.length - 1].night_date : '';
+            var short = view > 1 && $('fNights').checked && (!lastNight || lastNight < addDays(viewEnd(), -21));
+            $('note').classList.toggle('hidden', !short);
+            if (short) $('note').textContent = 'Club nights are added to the calendar in advance, so the later months may show fewer nights for now. Tournaments appear once the committee publishes them.';
+
+            Array.prototype.forEach.call(document.querySelectorAll('.viewBtn'), function (b) {
+                var on = Number(b.dataset.view) === view;
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                b.className = 'viewBtn px-4 py-2 rounded-lg border text-sm font-semibold ' + (on ? 'bg-purple-700 border-purple-700 text-white' : 'bg-white border-slate-300 text-purple-800 hover:bg-purple-50');
+            });
+            $('icsBtn').disabled = !count;
+            $('icsBtn').className = 'text-sm font-semibold text-purple-800 border border-purple-300 rounded-lg px-3 py-2 ' + (count ? 'hover:bg-purple-50' : 'opacity-50 cursor-not-allowed');
+        }
+
+        // ----- add to calendar (.ics file made in the browser) -----
+        function ics(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+        function fold(line) { var out = []; while (line.length > 60) { out.push(line.slice(0, 60)); line = ' ' + line.slice(60); } out.push(line); return out.join('\r\n'); }
+        function compact(iso) { return iso.replace(/-/g, ''); }
+        function clock(t) { var p = String(t).split(':'); return p[0] + p[1] + (p[2] || '00'); }
+        function download() {
+            var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+            var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//RJD Archers//Club calendar//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:RJD Archers', 'X-WR-TIMEZONE:Europe/London'];
+            events().forEach(function (ev) {
+                var e = [], d = compact(ev.date);
+                if (ev.type === 'night') {
+                    var n = ev.n; if (n.cancelled) return;
+                    e.push('UID:night-' + n.id + '@rjd-archers', 'DTSTAMP:' + stamp, 'SUMMARY:' + ics(nightTitle(n)));
+                    if (n.start_time) { e.push('DTSTART:' + d + 'T' + clock(n.start_time)); e.push('DTEND:' + d + 'T' + clock(n.end_time || n.start_time)); }
+                    else { e.push('DTSTART;VALUE=DATE:' + d, 'DTEND;VALUE=DATE:' + compact(addDays(ev.date, 1))); }
+                    if (n.venue) e.push('LOCATION:' + ics(n.venue));
+                    e.push('DESCRIPTION:' + ics([nightWhat(n), n.notes].filter(Boolean).join('. ')));
+                } else {
+                    var t = ev.t;
+                    e.push('UID:tournament-' + t.id + '@rjd-archers', 'DTSTAMP:' + stamp, 'SUMMARY:' + ics(t.name), 'DTSTART;VALUE=DATE:' + d, 'DTEND;VALUE=DATE:' + compact(addDays(ev.date, 1)));
+                    if (t.venue) e.push('LOCATION:' + ics(t.venue));
+                    e.push('DESCRIPTION:' + ics((t.closing_date ? 'Entries close ' + longDay(t.closing_date) + '. ' : '') + 'Enter at https://' + location.host + '/tournaments.html'));
+                }
+                L.push('BEGIN:VEVENT'); L = L.concat(e); L.push('END:VEVENT');
+            });
+            L.push('END:VCALENDAR');
+            var blob = new Blob([L.map(fold).join('\r\n') + '\r\n'], { type: 'text/calendar;charset=utf-8' });
+            var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rjd-archers-calendar.ics';
+            document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+        }
+
+        // ----- wiring -----
+        Array.prototype.forEach.call(document.querySelectorAll('.viewBtn'), function (b) { b.addEventListener('click', function () { view = Number(b.dataset.view); render(); }); });
+        $('fNights').addEventListener('change', render);
+        $('fTours').addEventListener('change', render);
+        $('icsBtn').addEventListener('click', function () { if (!$('icsBtn').disabled) download(); });
+        render();
+        load();
+    })();
+    </script>
 </body>
 </html>
