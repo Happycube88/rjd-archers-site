@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
    <script src="/auth-status.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -20,7 +21,7 @@
         <div id="gate" class="mt-6"></div>
         <div id="hub" class="hidden mt-6 space-y-8">
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex flex-wrap items-center justify-between gap-3">
-                <div><p id="hello" class="text-lg font-bold text-slate-900"></p><p class="text-xs text-slate-500 mt-1"><a class="underline text-purple-700" href="/members.html">Members area</a></p></div>
+                <div><p id="hello" class="text-lg font-bold text-slate-900"></p><p id="roles" class="text-xs text-slate-500 mt-1"></p><p class="text-xs text-slate-500 mt-1"><a class="underline text-purple-700" href="/members.html">Members area</a></p><p id="jobs" class="text-xs text-slate-600 mt-2"></p></div>
                 <div id="tfa"></div>
             </div>
             <section><h2 class="text-sm font-bold uppercase tracking-wide text-slate-500 mb-3">People</h2><div id="people" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div></section>
@@ -67,18 +68,29 @@
         if (!session) return loginBox('Committee login', '/committee.html');
         const [{ data: com }, { data: lead }] = await Promise.all([sb.rpc('is_committee'), sb.rpc('is_session_lead')]);
         if (com !== true) {
-            if (lead === true) { $('gate').innerHTML = '<div class="bg-white rounded-xl border border-slate-200 p-6 max-w-md mx-auto space-y-3"><p class="text-sm text-slate-700">The committee area is for committee members. As a Session lead you can see who is coming to club nights.</p>' + card('/db/committee-club-nights.html', 'Club night attendees', 'See who is coming to a club night.', 'border-l-amber-500') + '</div>'; return; }
+            if (lead === true) { $('gate').innerHTML = '<div class="bg-white rounded-xl border border-slate-200 p-6 max-w-md mx-auto space-y-3"><p class="text-sm text-slate-700">The committee area is for committee members. With the Club night setup role you can see who is coming to club nights.</p>' + card('/db/committee-club-nights.html', 'Club night attendees', 'See who is coming to a club night.', 'border-l-amber-500') + '</div>'; return; }
             $('gate').innerHTML = '<div class="bg-white rounded-xl border border-slate-200 p-6 max-w-md mx-auto text-sm text-slate-700">This area is for committee members only. <a class="underline text-purple-700" href="/members.html">Go to the Members area</a>.</div>'; return;
         }
-        const { data: me } = await sb.from('members').select('name').eq('auth_id', session.user.id).maybeSingle();
+        const { data: me } = await sb.from('members').select('name,chaircom,secretarycom,membershipcom,welfarecom,tournamentscom,treasurercom,recordkeeper').eq('auth_id', session.user.id).maybeSingle();
+        const [{ data: cs }, { data: ma }, { data: jobs }, { count: pendingEmails }] = await Promise.all([
+            sb.rpc('is_chair_or_secretary'), sb.rpc('is_membership_admin'), sb.rpc('job_last_run'),
+            sb.from('email_change_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending')]);
+        const isCS = cs === true, isMA = ma === true;
         $('hub').classList.remove('hidden');
         $('hello').textContent = 'Hello ' + ((me && me.name) ? me.name.split(/\s+/)[0] : session.user.email);
+        if (me) {
+            const r = [['chaircom', 'Chair'], ['secretarycom', 'Secretary'], ['membershipcom', 'Membership'], ['treasurercom', 'Treasurer'], ['welfarecom', 'Welfare'], ['tournamentscom', 'Tournaments'], ['recordkeeper', 'Record keeper']].filter(x => me[x[0]]).map(x => x[1]);
+            $('roles').textContent = r.join(' · ');
+        }
+        const job = n => { const j = (jobs || []).find(x => x.job === n); return j ? new Date(j.last_run_at).toLocaleDateString('en-GB', { dateStyle: 'medium' }) + (j.run_by ? ' by ' + esc(j.run_by) : '') : 'never'; };
+        $('jobs').innerHTML = 'Last backup: <b>' + job('backup') + '</b> · Last purge: <b>' + job('purge') + '</b>';
         $('tfa').innerHTML = await twofa('/committee.html');
         $('people').innerHTML = [
             card('/db/committee-members.html', 'Member list', 'Everyone on the system, with type, fee category and roles.'),
             card('/db/committee-messages.html', 'Website messages', 'Messages sent from the Contact us form. Reply by email and mark them done.'),
-            card('/db/committee-add-member.html', 'Add people', 'Enquiries to beginners to members, guests, parents and guardians. Shows who has missing information.'),
-            card('/db/committee-edit-member.html', 'Edit people', 'Change any detail or role, including Session lead and record keeper.'),
+            card('/db/committee-add-member.html', 'Add people', isCS ? 'Enquiries to beginners, then invite or decline beginners and make members. Also guests, parents and guardians.' : 'Enquiries to beginners, guests, parents and guardians. The Chair or Secretary invites beginners and makes members.'),
+            card('/db/committee-edit-member.html', 'Edit people', isCS ? 'Change any detail, role, status or beginner decision.' : 'Change contact details, next of kin and course proof. The Chair or Secretary sets roles and status.'),
+            isMA ? card('/db/committee-edit-member.html#emails', 'Email change requests', (pendingEmails ? pendingEmails + ' waiting. ' : 'None waiting. ') + 'Members cannot change their own email: approve or reject their requests here.', pendingEmails ? 'border-l-red-500' : 'border-l-purple-500') : '',
             card('/db/committee-guests.html', 'One-off shoot guests', 'Visitors from other clubs at a single shoot.')].join('');
         $('tour').innerHTML = [card('/db/committee-tournaments.html', 'Tournament organiser', 'Create events, confirm places, mark paid, add paper entries, download the list.', 'border-l-indigo-500'),
             card('/tournaments.html', 'Public Tournaments page', 'See it as an entrant does.', 'border-l-slate-400')].join('');
@@ -86,7 +98,8 @@
             card('/db/club-nights.html', 'Booking page', 'See it as a member does.', 'border-l-slate-400')].join('');
         $('other').innerHTML = [card('/records.html', 'Club records and 252', 'Records, and the record keeper panel for checking scores.', 'border-l-amber-500'),
             card('/db/security.html', 'Security and 2FA', 'Your authenticator app.', 'border-l-slate-400'),
-            card('/db/committee-backup.html', 'Download a backup', 'Save a copy of the club data to keep safe off the website.', 'border-l-amber-500'),
+            isMA ? card('/db/committee-backup.html', 'Download a backup', 'Save a copy of the club data to keep safe off the website. Last backup: ' + job('backup') + '.', 'border-l-amber-500') : '',
+            isCS ? card('/db/committee-purge.html', 'Purge old data', 'Remove personal data for people who have left. Last purge: ' + job('purge') + '.', 'border-l-red-500') : '',
             card('/news.html', 'News page', 'Latest club news.', 'border-l-slate-400')].join('');
     }
     start();

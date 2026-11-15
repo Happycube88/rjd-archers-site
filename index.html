@@ -12,6 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
    <script src="/auth-status.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -82,6 +83,16 @@
                 </ul>
             </div>
             
+            <div id="fbCard" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="text-lg font-bold text-purple-950 mb-2">Join our Facebook group</h3>
+                <p class="text-sm text-slate-600 mb-3">News, photos and chat with other RJD Archers members.</p>
+                <a id="fbLink" href="#" target="_blank" rel="noopener" class="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded">Open the Facebook group</a>
+            </div>
+            <script>
+                // Paste the club's Facebook group address between the quotes. The card stays hidden until you do.
+                (function () { var FB_GROUP_URL = ''; if (FB_GROUP_URL) { document.getElementById('fbLink').href = FB_GROUP_URL; document.getElementById('fbCard').classList.remove('hidden'); } })();
+            </script>
+
             <!-- Lighter Slate Gray Notice Widget -->
             <div class="bg-slate-200 text-slate-900 p-6 rounded-xl shadow-sm border border-slate-300">
                 <h3 class="text-lg font-bold mb-2 text-purple-950">New Season Notice</h3>

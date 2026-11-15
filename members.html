@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
    <script src="/auth-status.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -59,30 +60,51 @@
           : `<a class="inline-block text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-1 rounded hover:bg-amber-200" href="/db/security.html?next=${encodeURIComponent(next)}">Enter your 2FA code to make changes</a>`;
     }
 
+    const note = (title, text, tone) => `<div class="bg-white rounded-xl border border-slate-200 border-l-4 ${tone || 'border-l-slate-300'} p-4 shadow-sm">
+        <p class="font-bold text-slate-900">${title}</p><p class="text-sm text-slate-600 mt-1">${text}</p></div>`;
+
     async function start() {
         const { data: { session } } = await sb.auth.getSession();
-        if (!session) return loginBox('Member login', '/members.html');
-        const { data: me } = await sb.from('members').select('id,name,membertype,recordkeeper,dob').eq('auth_id', session.user.id).maybeSingle();
+        if (!session) { loginBox('Member login', '/members.html'); if (/timedout=1/.test(location.search)) say('You were signed out after a period of inactivity, to keep your details safe. Please sign in again.', true); return; }
+        const { data: me } = await sb.from('members').select('id,name,membertype,recordkeeper,dob,status').eq('auth_id', session.user.id).maybeSingle();
         const [{ data: com }, { data: lead }] = await Promise.all([sb.rpc('is_committee'), sb.rpc('is_session_lead')]);
         $('hub').classList.remove('hidden');
         if (!me) { $('hello').textContent = 'You are signed in as ' + session.user.email; $('chips').textContent = 'Your login is not linked to a club record yet. Ask a committee member to add you with this email address.'; $('tfa').innerHTML = await twofa('/members.html'); return; }
         const first = (me.name || '').split(/\s+/)[0];
         $('hello').textContent = 'Hello ' + first;
+        { const d = me.dob ? new Date(me.dob + 'T12:00:00') : null, t = new Date();
+          if (d && d.getDate() === t.getDate() && d.getMonth() === t.getMonth()) $('hello').textContent = '\uD83C\uDF82 Happy birthday, ' + first + '! From everyone at RJD Archers.'; }
         const kind = { member: 'Member', guest: 'Registered guest', parent: 'Parent or guardian', beginner: 'Beginner' }[me.membertype] || me.membertype;
-        const chips = [kind]; if (com === true) chips.push('Committee'); if (lead === true) chips.push('Session lead'); if (me.recordkeeper) chips.push('Record keeper');
-        $('chips').textContent = chips.join(' \u00b7 ');
+        const active = !me.status || me.status === 'active';
+        const chips = [kind]; if (!active) chips.push(me.status === 'lapsed' ? 'Membership lapsed' : 'Left the club');
+        if (active && com === true) chips.push('Committee'); if (active && lead === true) chips.push('Club night setup'); if (active && me.recordkeeper) chips.push('Record keeper');
+        $('chips').textContent = chips.join(' · ');
         $('tfa').innerHTML = await twofa('/members.html');
+
+        // Only show what this person can actually use.
+        const { count: kidCount } = await sb.from('member_guardians').select('id', { count: 'exact', head: true }).eq('guardian_member_id', me.id);
+        const hasKids = (kidCount || 0) > 0;
+        const isArcher = ['member', 'guest'].includes(me.membertype);
+        const who = isArcher && hasKids ? 'you and your children' : hasKids ? 'your children' : 'you';
         const c = [];
-        c.push(card('/db/edit-profile.html', 'My profile and next of kin', 'Update your contact details and next of kin.' + (me.membertype === 'parent' ? ' Includes your children.' : '')));
-        if (['member', 'guest', 'parent'].includes(me.membertype)) c.push(card('/db/club-nights.html', 'Book a club night', 'See the Tuesday and Friday nights. Booking opens 5pm the day before and closes 5pm on the day.'));
-        c.push(card('/tournaments.html', 'Enter a tournament', 'The 2027 events. Enter online, or use the paper route.'));
-        c.push(card('/records.html', 'Club records and 252 scores', 'Add your 252 badge scores and see the club records.'));
-        if (me.membertype === 'parent') c.push(card('/db/edit-profile.html#kids', 'My children', 'Update their details, enter their scores, book their nights.'));
+        c.push(card('/db/edit-profile.html', 'My profile and next of kin', 'Update your contact details and next of kin. To change your email address, send a request: the committee approves it.' + (hasKids ? ' Includes your children.' : '')));
+
+        if (!active) {
+            c.push(note('Your membership is not active', 'You cannot book club nights or enter tournaments at the moment. Please contact the committee if you think this is wrong.', 'border-l-amber-500'));
+        } else {
+            if (me.membertype === 'beginner') c.push(note('Your beginners course', 'After you have successfully completed the course, the committee may offer you an invitation to join the club. Until then you can update your details here, but you cannot book club nights or enter tournaments.', 'border-l-purple-500'));
+            if (isArcher || hasKids) {
+                c.push(card('/db/club-nights.html', 'Book a club night', 'Book for ' + who + '. The Tuesday and Friday nights open for booking at 5pm the day before and close at 5pm on the day.'));
+                c.push(card('/tournaments.html', 'Enter a tournament', 'Enter ' + who + ' in the 2027 events online, or use the paper route.'));
+            }
+            if (me.membertype === 'member' || hasKids) c.push(card('/records.html', 'Club records and 252 scores', 'Add 252 badge scores for ' + (me.membertype === 'member' ? who : 'your children') + ' and see the club records.'));
+            if (hasKids) c.push(card('/db/edit-profile.html#kids', 'My children', 'Update their details, enter their scores, book their nights.'));
+        }
         c.push(card('/db/security.html', 'Security and 2FA', 'Set up or check the authenticator app that protects changes.', 'border-l-slate-400'));
         c.push(card('/help-2fa.html', 'How to set up 2FA', 'A five-minute guide in plain words.', 'border-l-slate-400'));
-        if (com === true) c.push(card('/committee.html', 'Committee area', 'People, tournaments, club nights and guests.', 'border-l-amber-500'));
-        else if (lead === true) c.push(card('/db/committee-club-nights.html', 'Club night attendees', 'See who is coming to a club night.', 'border-l-amber-500'));
-        if (me.recordkeeper) c.push(card('/records.html', 'Record keeper: check scores', 'Verify 252 scores and mark badges given.', 'border-l-amber-500'));
+        if (active && com === true) c.push(card('/committee.html', 'Committee area', 'People, tournaments, club nights and guests.', 'border-l-amber-500'));
+        else if (active && lead === true) c.push(card('/db/committee-club-nights.html', 'Club night attendees', 'See who is coming to a club night.', 'border-l-amber-500'));
+        if (active && me.recordkeeper) c.push(card('/records.html', 'Record keeper: check scores', 'Verify 252 scores and mark badges given.', 'border-l-amber-500'));
         $('cards').innerHTML = c.join('');
     }
     start();

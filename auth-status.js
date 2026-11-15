@@ -1,7 +1,7 @@
 // auth-status.js - compact account menu in the page header.
 // Use: put <span id="authStatus"></span> in the nav, then load this file after the supabase-js script (head or end of body).
 // Signed out: a "Member Login" button. Signed in: a small "My account" button that opens a menu
-// (email, 2FA state, Members area, Committee area for committee and Session leads, Sign out).
+// (email, 2FA state, Members area, Committee area for committee and Club night setup people, Sign out).
 (function () {
   function init() {
   var SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
