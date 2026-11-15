@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robin Hood Challenge | RJD Archers</title>
+    <title>Game | RJD Archers</title>
     <meta name="description" content="A little archery game from RJD Archers: hold to draw, steady your aim, allow for the wind and release.">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 <script src="/site-nav.js"></script>
 <main class="max-w-3xl mx-auto px-4 py-8 space-y-4">
-    <h1 class="text-3xl font-bold text-purple-950">Robin Hood Challenge</h1>
+    <h1 class="text-3xl font-bold text-purple-950">Game</h1>
     <p class="text-slate-600">A short round: 6 ends of 3 arrows, 180 to win. <b>Hold</b> the mouse button, screen or space bar to draw. Your aim settles as you hold, then starts to tire, so let go at the steadiest moment. Allow for the wind. Pass 160 and you are a Robin Hood.</p>
     <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
         <canvas id="c" width="640" height="440" class="w-full rounded-lg touch-none select-none bg-sky-100" aria-label="Archery target game" tabindex="0"></canvas>
@@ -26,7 +26,8 @@
 (function () {
     var cv = document.getElementById('c'), g = cv.getContext('2d'), W = 640, H = 440, CX = 320, CY = 210, R = 130;
     var $ = function (id) { return document.getElementById(id); };
-    var COLS = ['#f8fafc', '#f8fafc', '#111827', '#111827', '#2563eb', '#2563eb', '#dc2626', '#dc2626', '#facc15', '#facc15'];
+    // index 0 is the centre (10 points): gold, red, blue, black, white, like a real target face
+    var COLS = ['#facc15', '#facc15', '#dc2626', '#dc2626', '#2563eb', '#2563eb', '#111827', '#111827', '#f8fafc', '#f8fafc'];
     var st, best = 0;
     try { best = +localStorage.getItem('rjd-game-best') || 0; } catch (e) {}
     $('best').textContent = best;
@@ -79,7 +80,7 @@
         // stand
         g.fillStyle = '#78350f'; g.fillRect(CX - 6, CY + R - 10, 12, 190 - R + 20 + 0); 
         // target rings
-        for (var i = 9; i >= 0; i--) { g.beginPath(); g.arc(CX, CY, R * (i + 1) / 10, 0, 7); g.fillStyle = COLS[i]; g.fill(); g.lineWidth = 1; g.strokeStyle = i === 2 || i === 3 ? '#9ca3af' : '#374151'; g.stroke(); }
+        for (var i = 9; i >= 0; i--) { g.beginPath(); g.arc(CX, CY, R * (i + 1) / 10, 0, 7); g.fillStyle = COLS[i]; g.fill(); g.lineWidth = 1; g.strokeStyle = i === 6 || i === 7 ? '#9ca3af' : '#374151'; g.stroke(); }
         // arrows in target
         st.shots.forEach(function (a) { g.strokeStyle = '#7c2d12'; g.lineWidth = 3; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(a.x - 18, a.y + 26); g.stroke(); g.fillStyle = '#16a34a'; g.beginPath(); g.arc(a.x - 18, a.y + 26, 4, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(a.x, a.y, 2.5, 0, 7); g.fill(); });
         // wind flag
