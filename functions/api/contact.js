@@ -4,12 +4,31 @@
 const TOPICS = ['Beginners Course', 'Club Membership', 'Tournaments', 'General Enquiry'];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+
+// Bot checks: hidden box, too-fast submissions, and (if switched on) Cloudflare Turnstile.
+// "trap" = pretend it worked and store nothing; "fail" = ask a real person to try again.
+async function botCheck(body, env) {
+  if (body.website) return 'trap';
+  if (typeof body.t === 'number' && Date.now() - body.t < 3000) return 'trap';
+  if (env && env.TURNSTILE_SECRET) {
+    if (!body.ts) return 'fail';
+    try {
+      const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: String(body.ts) }) });
+      const j = await r.json();
+      if (!j.success) return 'fail';
+    } catch (e) { return 'fail'; }
+  }
+  return 'ok';
+}
+
 export async function onRequestPost(context) {
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
   try {
     let body;
     try { body = await context.request.json(); } catch (e) { return json({ success: false, error: 'Bad request.' }, 400); }
-    if (body.website) return json({ success: true });                       // spam trap: bots fill the hidden box
+    const bot = await botCheck(body, context.env);
+    if (bot === 'trap') return json({ success: true });
+    if (bot === 'fail') return json({ success: false, error: 'Please complete the "I am human" check and try again.' }, 400);
     const clean = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
     const row = { name: clean(body.name, 100), email: clean(body.email, 254).toLowerCase(), topic: clean(body.topic, 40), message: clean(body.message, 3000) };
     if (!row.name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(row.email)) return json({ success: false, error: 'Please give your name and a valid email address.' }, 400);

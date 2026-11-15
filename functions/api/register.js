@@ -1,3 +1,20 @@
+
+// Bot checks: hidden box, too-fast submissions, and (if switched on) Cloudflare Turnstile.
+// "trap" = pretend it worked and store nothing; "fail" = ask a real person to try again.
+async function botCheck(body, env) {
+  if (body.website) return 'trap';
+  if (typeof body.t === 'number' && Date.now() - body.t < 3000) return 'trap';
+  if (env && env.TURNSTILE_SECRET) {
+    if (!body.ts) return 'fail';
+    try {
+      const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: String(body.ts) }) });
+      const j = await r.json();
+      if (!j.success) return 'fail';
+    } catch (e) { return 'fail'; }
+  }
+  return 'ok';
+}
+
 export async function onRequestPost(context) {
   const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json" } });
   try {
@@ -21,7 +38,9 @@ export async function onRequestPost(context) {
       guardian_phone: clean(body.guardian_phone, 30) || null
     };
     // Spam trap: bots fill the hidden 'website' box. Pretend it worked, store nothing.
-    if (body.website) return json({ success: true });
+    const bot = await botCheck(body, context.env);
+    if (bot === 'trap') return json({ success: true });
+    if (bot === 'fail') return json({ success: false, error: 'Please complete the "I am human" check and try again.' }, 400);
 
     // Under-18s must name a parent or guardian (server-side check; the form also checks)
     if (row.dob) {
