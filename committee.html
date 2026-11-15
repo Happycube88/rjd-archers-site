@@ -99,6 +99,7 @@
         $('other').innerHTML = [card('/records.html', 'Club records and 252', 'Records, and the record keeper panel for checking scores.', 'border-l-amber-500'),
             card('/db/security.html', 'Security and 2FA', 'Your authenticator app.', 'border-l-slate-400'),
             isMA ? card('/db/committee-backup.html', 'Download a backup', 'Save a copy of the club data to keep safe off the website. Last backup: ' + job('backup') + '.', 'border-l-amber-500') : '',
+            isMA ? card('/db/committee-audit.html', 'Audit log', 'A permanent record of who changed roles, status, emails, backups and purges. Cannot be edited.', 'border-l-slate-500') : '',
             isCS ? card('/db/committee-purge.html', 'Purge old data', 'Remove personal data for people who have left. Last purge: ' + job('purge') + '.', 'border-l-red-500') : '',
             card('/news.html', 'News page', 'Latest club news.', 'border-l-slate-400')].join('');
     }

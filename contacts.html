@@ -42,6 +42,7 @@
                 <div><label for="cMsg" class="block text-sm font-semibold text-slate-800 mb-1">Your message <span class="text-red-700">*</span></label>
                     <textarea id="cMsg" name="message" required rows="6" maxlength="3000" class="w-full border border-slate-300 p-2.5 rounded"></textarea></div>
                 <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty <input id="cWeb" name="website" tabindex="-1" autocomplete="off"></label></div>
+                <div id="tsBox"></div>
                 <button id="cSend" type="submit" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-6 py-2.5 rounded">Send message</button>
                 <p id="cMsgOut" class="text-sm font-medium" role="status" aria-live="polite"></p>
                 <p class="text-xs text-slate-500">We use your details only to reply to you. Under-18s: please ask a parent or guardian to write.</p>
@@ -53,6 +54,7 @@
                 f.addEventListener('submit', async function (e) {
                     e.preventDefault(); out.className = 'text-sm font-medium text-slate-700'; out.textContent = '';
                     var d = { name: f.name.value, email: f.email.value, topic: f.topic.value, message: f.message.value, website: document.getElementById('cWeb').value };
+                    var b = window.rjdBot ? window.rjdBot() : {}; d.t = b.t; d.ts = b.ts;
                     if (!d.name.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim()) || !d.topic || !d.message.trim()) { out.className = 'text-sm font-medium text-red-700'; out.textContent = 'Please fill in every box with a star.'; return; }
                     var btn = document.getElementById('cSend'); btn.disabled = true; out.textContent = 'Sending...';
                     try {
@@ -61,7 +63,7 @@
                         if (j.success) { f.reset(); out.className = 'text-sm font-medium text-green-700'; out.textContent = 'Thank you. Your message has been sent and we will reply by email.'; }
                         else { out.className = 'text-sm font-medium text-red-700'; out.textContent = j.error || 'Sorry, that did not send. Please try again.'; }
                     } catch (err) { out.className = 'text-sm font-medium text-red-700'; out.textContent = 'Sorry, that did not send. Please check your connection and try again.'; }
-                    btn.disabled = false;
+                    btn.disabled = false; if (window.rjdBotReset) window.rjdBotReset();
                 });
             })();
             </script>
@@ -123,5 +125,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/idle-timeout.js"></script>
     <script src="/auth-status.js"></script>
+<script src="/bot-guard.js"></script>
 </body>
 </html>

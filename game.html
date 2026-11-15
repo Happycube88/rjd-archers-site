@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robin Hood Challenge | RJD Archers</title>
+    <meta name="description" content="A little archery game from RJD Archers: hold to draw, steady your aim, allow for the wind and release.">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+<script src="/site-nav.js"></script>
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-4">
+    <h1 class="text-3xl font-bold text-purple-950">Robin Hood Challenge</h1>
+    <p class="text-slate-600">A short round: 6 ends of 3 arrows, 180 to win. <b>Hold</b> the mouse button, screen or space bar to draw. Your aim settles as you hold, then starts to tire, so let go at the steadiest moment. Allow for the wind. Pass 160 and you are a Robin Hood.</p>
+    <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+        <canvas id="c" width="640" height="440" class="w-full rounded-lg touch-none select-none bg-sky-100" aria-label="Archery target game" tabindex="0"></canvas>
+        <div class="flex flex-wrap items-center justify-between gap-2 mt-3 text-sm">
+            <p>End <b id="end">1</b> of 6 · Arrow <b id="arrow">1</b> of 3 · Score <b id="score">0</b> · Best <b id="best">0</b></p>
+            <button id="again" type="button" class="hidden bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-1.5 rounded">Play again</button>
+        </div>
+        <p id="say" class="text-sm font-medium text-purple-900 mt-2 min-h-[1.25rem]" role="status" aria-live="polite"></p>
+    </div>
+    <p class="text-xs text-slate-500">For fun only: scores stay on your own device. Want to try the real thing? <a class="underline text-purple-700" href="/Beginners.html">Join a beginners course</a>.</p>
+</main>
+<script>
+(function () {
+    var cv = document.getElementById('c'), g = cv.getContext('2d'), W = 640, H = 440, CX = 320, CY = 210, R = 130;
+    var $ = function (id) { return document.getElementById(id); };
+    var COLS = ['#f8fafc', '#f8fafc', '#111827', '#111827', '#2563eb', '#2563eb', '#dc2626', '#dc2626', '#facc15', '#facc15'];
+    var st, best = 0;
+    try { best = +localStorage.getItem('rjd-game-best') || 0; } catch (e) {}
+    $('best').textContent = best;
+
+    function reset() {
+        st = { end: 1, arrow: 1, score: 0, shots: [], wind: 0, hold: 0, holding: false, t0: 0, fly: null, done: false, last: '' };
+        newWind(); ui(); $('again').classList.add('hidden'); say('Hold to draw. Release at the steadiest moment.');
+    }
+    function newWind() { st.wind = Math.round((Math.random() * 6 - 3) * 10) / 10; }
+    function say(t) { $('say').textContent = t; }
+    function ui() { $('end').textContent = Math.min(st.end, 6); $('arrow').textContent = Math.min(st.arrow, 3); $('score').textContent = st.score; $('best').textContent = best; }
+
+    // aim wobble: calms for the first 1.3s of the draw, then tires
+    function sway(now) {
+        var h = st.holding ? (now - st.t0) / 1000 : 0, k;
+        if (!st.holding) k = 1; else k = h < 1.3 ? 1 - 0.75 * (h / 1.3) : 0.25 + Math.min(1.2, (h - 1.3) * 0.5);
+        var A = 70 * k, t = now / 1000;
+        return { x: A * (Math.sin(t * 2.3) + 0.6 * Math.sin(t * 4.1 + 1)) / 1.6, y: A * (Math.cos(t * 1.9) + 0.6 * Math.sin(t * 3.7 + 2)) / 1.6, k: k, h: h };
+    }
+    function start(e) { if (e) e.preventDefault(); if (st.done || st.fly || st.holding) return; st.holding = true; st.t0 = performance.now(); }
+    function release(e) {
+        if (e) e.preventDefault();
+        if (!st.holding) return; var now = performance.now(), s = sway(now); st.holding = false;
+        if (s.h < 0.25) { say('Too quick: draw the bow properly first.'); return; }
+        var tx = CX + s.x + st.wind * 14, ty = CY + s.y + 6 + Math.max(0, 1.2 - s.h) * 8; // a quick release drops a little
+        st.fly = { x: tx, y: ty, t: now };
+    }
+    function points(x, y) { var d = Math.hypot(x - CX, y - CY), p = 10 - Math.floor(d / (R / 10)); return p < 0 ? 0 : p; }
+    function landed() {
+        var f = st.fly, p = points(f.x, f.y); st.fly = null; st.shots.push({ x: f.x, y: f.y });
+        st.score += p; st.last = p === 10 ? 'Gold! Ten!' : p === 0 ? 'Miss!' : p + ' points';
+        if (st.arrow === 3) {
+            if (st.end === 6) { finish(); return; }
+            st.end++; st.arrow = 1; st.shots = []; newWind(); say(st.last + '. New end: the wind has changed.');
+        } else { st.arrow++; say(st.last); }
+        ui();
+    }
+    function finish() {
+        st.done = true; ui();
+        var s = st.score, title = s >= 160 ? 'Robin Hood!' : s >= 120 ? 'Fine bowman' : s >= 70 ? 'Getting the hang of it' : 'Every archer starts here';
+        if (s > best) { best = s; try { localStorage.setItem('rjd-game-best', String(s)); } catch (e) {} }
+        ui(); say('Round over: ' + s + ' out of 180. ' + title + (s >= best ? ' New best!' : ''));
+        $('again').classList.remove('hidden');
+    }
+
+    function draw(now) {
+        g.clearRect(0, 0, W, H);
+        var sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, '#bae6fd'); sky.addColorStop(1, '#e0f2fe'); g.fillStyle = sky; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#86efac'; g.fillRect(0, 380, W, 60);
+        // stand
+        g.fillStyle = '#78350f'; g.fillRect(CX - 6, CY + R - 10, 12, 190 - R + 20 + 0); 
+        // target rings
+        for (var i = 9; i >= 0; i--) { g.beginPath(); g.arc(CX, CY, R * (i + 1) / 10, 0, 7); g.fillStyle = COLS[i]; g.fill(); g.lineWidth = 1; g.strokeStyle = i === 2 || i === 3 ? '#9ca3af' : '#374151'; g.stroke(); }
+        // arrows in target
+        st.shots.forEach(function (a) { g.strokeStyle = '#7c2d12'; g.lineWidth = 3; g.beginPath(); g.moveTo(a.x, a.y); g.lineTo(a.x - 18, a.y + 26); g.stroke(); g.fillStyle = '#16a34a'; g.beginPath(); g.arc(a.x - 18, a.y + 26, 4, 0, 7); g.fill(); g.fillStyle = '#111'; g.beginPath(); g.arc(a.x, a.y, 2.5, 0, 7); g.fill(); });
+        // wind flag
+        var wx = 70, wy = 70; g.fillStyle = '#334155'; g.fillRect(wx, wy - 10, 3, 60);
+        g.fillStyle = '#7c3aed'; g.beginPath(); var len = 8 + Math.abs(st.wind) * 14, dir = st.wind >= 0 ? 1 : -1, flap = Math.sin(now / 120) * 3;
+        g.moveTo(wx + 3, wy - 8); g.lineTo(wx + 3 + dir * len, wy - 4 + flap); g.lineTo(wx + 3, wy + 10); g.fill();
+        g.fillStyle = '#334155'; g.font = '13px sans-serif'; g.fillText('Wind ' + (st.wind === 0 ? 'calm' : Math.abs(st.wind) + (st.wind > 0 ? ' →' : ' ←')), wx - 24, wy + 64);
+        // flying arrow
+        if (st.fly) {
+            var p = Math.min(1, (now - st.fly.t) / 450), sx = CX + (st.fly.x - CX) * 0.2, sy = H - 30, x = sx + (st.fly.x - sx) * p, y = sy + (st.fly.y - sy) * p - Math.sin(p * Math.PI) * 50, sc = 1.4 - 0.5 * p;
+            g.save(); g.translate(x, y); g.scale(sc, sc); g.strokeStyle = '#7c2d12'; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 0); g.lineTo(-14, 22); g.stroke(); g.restore();
+            if (p >= 1) landed();
+        }
+        // aim
+        if (!st.done && !st.fly) {
+            var s = sway(now), ax = CX + s.x, ay = CY + s.y;
+            g.strokeStyle = st.holding ? 'rgba(124,58,237,.95)' : 'rgba(30,41,59,.4)'; g.lineWidth = 2; g.beginPath(); g.arc(ax, ay, 14, 0, 7); g.moveTo(ax - 22, ay); g.lineTo(ax + 22, ay); g.moveTo(ax, ay - 22); g.lineTo(ax, ay + 22); g.stroke();
+            // steadiness meter
+            var steady = Math.max(0, 1 - s.k); g.fillStyle = '#e2e8f0'; g.fillRect(W - 130, 20, 100, 12); g.fillStyle = steady > 0.6 ? '#16a34a' : steady > 0.3 ? '#f59e0b' : '#dc2626'; g.fillRect(W - 130, 20, 100 * steady, 12);
+            g.fillStyle = '#334155'; g.font = '12px sans-serif'; g.fillText('Steadiness', W - 130, 46);
+        }
+        requestAnimationFrame(draw);
+    }
+    cv.addEventListener('pointerdown', start); window.addEventListener('pointerup', release); cv.addEventListener('pointercancel', release);
+    window.addEventListener('keydown', function (e) { if (e.code === 'Space' && !e.repeat) start(e); });
+    window.addEventListener('keyup', function (e) { if (e.code === 'Space') release(e); });
+    $('again').addEventListener('click', reset);
+    reset(); requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

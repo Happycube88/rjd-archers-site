@@ -38,7 +38,7 @@ BACKUP_AND_RESTORE.md                       backup routine and restore steps
 
 Everything that matters is enforced in the database with row-level security, not in the web pages. Anyone can read public club records. Personal details are visible only to the person they belong to, a parent of a child under 18, and the committee. **Any change needs two-factor sign-in (an authenticator app).** The site holds only the public Supabase "anon" key, which is designed to be public. **Never put passwords, the Supabase service key, SMTP passwords or backup files in this repo; it is public.**
 
-## Database (`sql/`)
+## Database (`Sql/`)
 
 Run the scripts in the Supabase SQL editor, in this order, when building a new project:
 
@@ -54,7 +54,9 @@ Run the scripts in the Supabase SQL editor, in this order, when building a new p
 10. `club_nights.sql`
 11. `club_night_schedule.sql`
 12. `contact_messages.sql` (Contact us form messages)
-13. `bootstrap_first_committee.sql` (edit the email first; creates the first committee member)
+13. `roles_status_purge.sql` (committee roles, member status, beginner invitations, email-change control, backup and purge)
+14. `audit_log.sql` (permanent audit log for the Chair, Secretary and Membership)
+15. `bootstrap_first_committee.sql` (edit the email first; creates the first committee member)
 
 Then run `verify_policies.sql`: every row should say PASS. Run it again after any database change. Most scripts are safe to run twice.
 
@@ -68,7 +70,7 @@ Please protect `main` (Settings, Branches) and keep two-factor sign-in on the Gi
 
 ## Backups
 
-See [BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md). In short: committee members download an encrypted backup monthly from the Committee area, and a full Supabase dump is taken every three months.
+See [BACKUP_AND_RESTORE.md](BACKUP_AND_RESTORE.md). In short: the Chair, Secretary or Membership roles download an encrypted backup monthly from the Committee area, and a full Supabase dump is taken every three months.
 
 ## Who to ask
 

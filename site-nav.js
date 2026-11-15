@@ -14,6 +14,7 @@
       { label: 'Calendar', href: '/calendar.html' },
       { label: 'Local Clubs & Map', href: '/links.html' },
       { label: 'News', href: '/news.html' },
+      { label: 'Robin Hood Game', href: '/game.html' },
       { label: 'Welfare & Policies', href: '/policies.html' },
       { label: 'Contact Us', href: '/contacts.html' }] }
   ];
