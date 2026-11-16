@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Posts | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-4xl mx-auto space-y-5">
+    <p class="text-sm"><a class="underline text-purple-700" href="/committee.html">&larr; Committee area</a> · <a class="underline text-purple-700" href="/news.html">See the public News page</a></p>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-2">
+        <h1 class="text-2xl font-bold text-purple-950">News posts</h1>
+        <p class="text-sm text-slate-600">Write posts for the public News page. A post is only shown once <b>Published</b> is ticked. Pinned posts stay at the top. Plain text only: leave a blank line between paragraphs, and web addresses become links. Do not put members' personal details in a post. Changes need your 2FA code.</p>
+        <div id="gate" class="text-sm"></div>
+    </div>
+    <div id="work" class="hidden space-y-5">
+        <form id="f" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <h2 id="fh" class="text-lg font-bold text-purple-950">New post</h2>
+            <label class="block text-sm font-medium">Title <input id="title" required minlength="3" maxlength="120" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            <div class="grid sm:grid-cols-2 gap-3">
+                <label class="block text-sm font-medium">Type <select id="category" class="w-full border border-slate-300 p-2 rounded mt-1"><option>News</option><option>Event</option><option>Result</option><option>Notice</option></select></label>
+                <label class="block text-sm font-medium">Date shown <input type="date" id="posted_on" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            </div>
+            <label class="block text-sm font-medium">Post <textarea id="body" required maxlength="5000" rows="8" class="w-full border border-slate-300 p-2 rounded mt-1"></textarea></label>
+            <div class="flex flex-wrap gap-5 text-sm"><label><input type="checkbox" id="published"> Published (visible to everyone)</label><label><input type="checkbox" id="pinned"> Pinned to the top</label></div>
+            <div class="flex gap-3"><button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Save post</button><button type="button" id="cancel" class="hidden px-4 py-2.5 rounded border border-slate-300">Cancel editing</button></div>
+        </form>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-purple-950 mb-2">All posts</h2>
+            <div class="overflow-x-auto"><table class="w-full text-left border-collapse text-sm">
+                <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-2">Date</th><th class="p-2">Title</th><th class="p-2">Type</th><th class="p-2">Status</th><th class="p-2"></th></tr></thead>
+                <tbody id="rows"><tr><td colspan="5" class="p-3 text-center text-slate-500">Loading…</td></tr></tbody></table></div>
+        </div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium" role="status" aria-live="polite"></div>
+</div>
+<script>
+    const sb = supabase.createClient('https://onepmhddrqmvhyhagkth.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw');
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const FIELDS = ['title', 'category', 'posted_on', 'body'];
+    let posts = [], editing = null;
+    const todayStr = () => new Date().toISOString().slice(0, 10);
+    function clearForm() { editing = null; $('f').reset(); $('posted_on').value = todayStr(); $('fh').textContent = 'New post'; $('cancel').classList.add('hidden'); }
+    async function load() {
+        const { data, error } = await sb.from('news_posts').select('*').order('posted_on', { ascending: false });
+        if (error) return say(error.message, true);
+        posts = data || [];
+        $('rows').innerHTML = posts.map(p => `<tr class="border-b border-slate-100" data-id="${esc(p.id)}"><td class="p-2 whitespace-nowrap">${esc(p.posted_on)}</td><td class="p-2 font-medium">${esc(p.title)}</td><td class="p-2">${esc(p.category)}</td>
+            <td class="p-2">${p.published ? '<span class="text-green-700">Published</span>' : '<span class="text-slate-500">Draft</span>'}${p.pinned ? ' · pinned' : ''}</td>
+            <td class="p-2 whitespace-nowrap"><button type="button" class="ed text-purple-700 underline mr-3">Edit</button><button type="button" class="del text-red-700 underline">Delete</button></td></tr>`).join('')
+            || '<tr><td colspan="5" class="p-3 text-center text-slate-500">No posts yet.</td></tr>';
+    }
+    $('rows').addEventListener('click', async e => {
+        const tr = e.target.closest('tr'); if (!tr || !tr.dataset.id) return; const p = posts.find(x => x.id === tr.dataset.id); if (!p) return;
+        if (e.target.classList.contains('ed')) {
+            editing = p.id; FIELDS.forEach(k => $(k).value = p[k] || ''); $('published').checked = p.published; $('pinned').checked = p.pinned;
+            $('fh').textContent = 'Edit post'; $('cancel').classList.remove('hidden'); $('f').scrollIntoView({ behavior: 'smooth' });
+        } else if (e.target.classList.contains('del')) {
+            if (!confirm('Delete "' + p.title + '" for good?')) return;
+            const { error } = await sb.from('news_posts').delete().eq('id', p.id).select('id');
+            if (error) return say(error.message, true);
+            say('Deleted.'); await load();
+        }
+    });
+    $('cancel').addEventListener('click', clearForm);
+    $('f').addEventListener('submit', async e => {
+        e.preventDefault();
+        const row = { title: $('title').value.trim(), category: $('category').value, posted_on: $('posted_on').value || todayStr(), body: $('body').value.trim(), published: $('published').checked, pinned: $('pinned').checked };
+        const q = editing ? sb.from('news_posts').update(row).eq('id', editing) : sb.from('news_posts').insert(row);
+        const { data, error } = await q.select('id');
+        if (error) return say(error.message, true);
+        if (!data || !data.length) return say('Nothing was saved. Enter your 2FA code first.', true);
+        say(editing ? 'Post updated.' : 'Post saved.'); clearForm(); await load();
+    });
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { $('gate').innerHTML = '<a class="underline text-purple-700" href="/committee.html">Sign in on the Committee area first.</a>'; return; }
+        const { data: ok } = await sb.rpc('is_committee');
+        if (ok !== true) { $('gate').textContent = 'News posts can be written by committee members only.'; return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        $('gate').innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed to save.</span> <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-news.html">Enter your 2FA code</a>';
+        $('work').classList.remove('hidden'); clearForm(); await load();
+    }
+    start();
+</script>
+</body>
+</html>

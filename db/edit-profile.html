@@ -43,6 +43,18 @@
                         <input type="tel" id="editMobile" class="w-full border border-slate-300 p-2 rounded mt-1">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-slate-700">Address (house and street)</label>
+                        <input type="text" id="editAddress" maxlength="120" autocomplete="address-line1" class="w-full border border-slate-300 p-2 rounded mt-1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">Town</label>
+                        <input type="text" id="editTown" maxlength="60" autocomplete="address-level2" class="w-full border border-slate-300 p-2 rounded mt-1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700">County</label>
+                        <input type="text" id="editCounty" maxlength="60" autocomplete="address-level1" class="w-full border border-slate-300 p-2 rounded mt-1">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-slate-700">Postcode</label>
                         <input type="text" id="editPostcode" class="w-full border border-slate-300 p-2 rounded mt-1">
                     </div>
@@ -110,6 +122,9 @@
                 if (data) {
                     document.getElementById('editName').value = data.name || '';
                     document.getElementById('editMobile').value = data.mobile || '';
+                    document.getElementById('editAddress').value = data.address1 || '';
+                    document.getElementById('editTown').value = data.town || '';
+                    document.getElementById('editCounty').value = data.county || '';
                     document.getElementById('editPostcode').value = data.postcode || '';
                     document.getElementById('editNok').value = data.next_of_kin_name || '';
                     document.getElementById('editNokPhone').value = data.next_of_kin_phone || '';
@@ -144,6 +159,9 @@
             const { data: updated, error } = await supabaseClient.from('members').update({
                 name: document.getElementById('editName').value,
                 mobile: document.getElementById('editMobile').value,
+                address1: document.getElementById('editAddress').value.trim(),
+                town: document.getElementById('editTown').value.trim(),
+                county: document.getElementById('editCounty').value.trim(),
                 postcode: document.getElementById('editPostcode').value,
                 ...((window.__me && window.__me.membertype === 'parent') ? {} : {
                     next_of_kin_name: document.getElementById('editNok').value.trim(),
@@ -195,7 +213,7 @@
             const ids = (links || []).map(l => l.child_id);
             if (!ids.length) return;
             const { data: kids } = await supabaseClient.from('members')
-                .select('id,name,mobile,postcode,next_of_kin_name,next_of_kin_phone').in('id', ids).order('name');
+                .select('id,name,mobile,address1,town,county,postcode,next_of_kin_name,next_of_kin_phone').in('id', ids).order('name');
             if (!kids || !kids.length) return;
             document.getElementById('kidsSection').classList.remove('hidden');
             document.getElementById('kids').innerHTML = kids.map(k => `
@@ -203,6 +221,9 @@
                     <p class="font-semibold">${esc(k.name)}</p>
                     <label class="block text-xs text-slate-600">Name <input name="name" value="${esc(k.name)}" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
                     <label class="block text-xs text-slate-600">Mobile <input name="mobile" value="${esc(k.mobile)}" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">Address <input name="address1" value="${esc(k.address1)}" maxlength="120" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">Town <input name="town" value="${esc(k.town)}" maxlength="60" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
+                    <label class="block text-xs text-slate-600">County <input name="county" value="${esc(k.county)}" maxlength="60" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
                     <label class="block text-xs text-slate-600">Postcode <input name="postcode" value="${esc(k.postcode)}" maxlength="12" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
                     <label class="block text-xs text-slate-600">Next of kin name <input name="next_of_kin_name" value="${esc(k.next_of_kin_name)}" maxlength="100" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
                     <label class="block text-xs text-slate-600">Next of kin phone <input name="next_of_kin_phone" value="${esc(k.next_of_kin_phone)}" maxlength="30" class="w-full border border-slate-300 p-2 rounded mt-1 text-sm"></label>
@@ -212,7 +233,7 @@
         document.getElementById('kids').addEventListener('submit', async (e) => {
             e.preventDefault();
             const f = e.target, o = {};
-            ['name','mobile','postcode','next_of_kin_name','next_of_kin_phone'].forEach(n => o[n] = f.elements[n].value.trim());
+            ['name','mobile','address1','town','county','postcode','next_of_kin_name','next_of_kin_phone'].forEach(n => o[n] = f.elements[n].value.trim());
             const { data, error } = await supabaseClient.from('members').update(o).eq('id', f.dataset.id).select('id');
             const msg = document.getElementById('msg');
             if (error) { msg.textContent = 'Could not save: ' + error.message; msg.className = 'text-red-600 text-center'; }
