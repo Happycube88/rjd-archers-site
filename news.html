@@ -3,52 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Latest news from RJD Archers.">
-    <meta property="og:title" content="RJD Archers">
-    <meta property="og:description" content="Latest news from RJD Archers.">
+    <meta name="description" content="Latest news, events and results from RJD Archers.">
+    <meta property="og:title" content="News | RJD Archers">
+    <meta property="og:description" content="Latest news, events and results from RJD Archers.">
     <meta property="og:type" content="website">
     <title>Club News | RJD Archers</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
-
     <script src="/site-nav.js"></script>
 
-    <!--Page Header Section -->
-    <section class="bg-slate-800 text-white py-10 px-4">
-        <div class="max-w-4xl mx-auto text-center">
-            <h1 class="text-3xl font-bold">Club News & Announcements</h1>
-            <p class="text-slate-300 mt-2">Official updates, seasonal notices, and announcements from the RJD committee.</p>
+    <section class="bg-gradient-to-br from-purple-900 to-slate-800 text-white py-12 px-4">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-3xl sm:text-4xl font-extrabold">News &amp; announcements</h1>
+            <p class="text-purple-100 mt-2 max-w-2xl">What is happening at RJD Archers: club notices, events and results from the committee.</p>
         </div>
-</section>
-    
-    <!-- EMBED CONTAINER -->
-    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8">
-        
-        <!--div class="mb-6 text-center">
-            <h2 class="text-3xl font-extrabold text-purple-900">Club News & Updates</h2>
-            <p class="text-slate-600 text-sm mt-1">Latest announcements, shoot reports, and events straight from the committee.</p>
-    </div-->
+    </section>
 
-        <!-- EMBED CONTAINER WITH MARGIN CROPPER -->
-        <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden p-0 w-full">
-            <div class="w-full overflow-hidden relative h-[1200px]">
-                <iframe src="https://docs.google.com/document/d/e/2PACX-1vSYIyuq4Ly5gHuJTw8fouHjAFOo88LEjRlD81l4WBCTNh21HCoO9jiGOwW_vfFPsXLyBLKUuB2wIVoG/pub?embedded=true" 
-                        class="absolute top-[-100px] left-[-70px] w-full h-[1200px] border-0">
-                </iframe>
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-8 grid gap-8 lg:grid-cols-3">
+        <div class="lg:col-span-2 space-y-5">
+            <div class="flex flex-wrap gap-2" id="filters" role="group" aria-label="Filter news"></div>
+            <div id="posts" class="space-y-5" aria-live="polite"><p class="text-slate-500">Loading news…</p></div>
+            <details class="bg-white rounded-xl border border-slate-200 p-4">
+                <summary class="cursor-pointer font-semibold text-purple-900">Earlier news (archive)</summary>
+                <p class="text-sm text-slate-600 mt-2">News from before the new website.</p>
+                <a class="inline-block mt-2 underline text-purple-700 text-sm" target="_blank" rel="noopener" href="https://docs.google.com/document/d/e/2PACX-1vSYIyuq4Ly5gHuJTw8fouHjAFOo88LEjRlD81l4WBCTNh21HCoO9jiGOwW_vfFPsXLyBLKUuB2wIVoG/pub">Open the earlier news page</a>
+            </details>
+        </div>
+
+        <aside class="space-y-5">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <h2 class="text-lg font-bold text-purple-950">Coming up</h2>
+                <ul id="upcoming" class="mt-2 space-y-2 text-sm"><li class="text-slate-500">Loading…</li></ul>
+                <a class="inline-block mt-3 underline text-purple-700 text-sm" href="/tournaments.html">All tournaments</a> · <a class="underline text-purple-700 text-sm" href="/calendar.html">Calendar</a>
             </div>
-        </div>
-
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <h2 class="text-lg font-bold text-purple-950">Follow us</h2>
+                <p class="text-sm text-slate-600 mt-1">Photos, chat and quick updates in our Facebook group.</p>
+                <a class="inline-block mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded" target="_blank" rel="noopener" href="https://www.facebook.com/share/1CWn6qUeRJ/">Open the Facebook group</a>
+            </div>
+            <div class="bg-purple-50 rounded-xl border border-purple-200 p-5">
+                <h2 class="text-lg font-bold text-purple-950">Fancy a go?</h2>
+                <p class="text-sm text-slate-700 mt-1">Our beginners course is open to anyone from age 8.</p>
+                <a class="inline-block mt-3 underline text-purple-700 text-sm font-semibold" href="/Beginners.html">Find out more</a> · <a class="underline text-purple-700 text-sm font-semibold" href="/game.html">Play the game</a>
+            </div>
+        </aside>
     </main>
 
-
-    <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm border-t border-slate-800">
         <p>&copy; 2026 RJD Archers. All rights reserved.</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/idle-timeout.js"></script>
-    <script src="/auth-status.js"></script>
+<script>
+    const sb = supabase.createClient('https://onepmhddrqmvhyhagkth.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw');
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const TONE = { News: 'bg-purple-100 text-purple-800', Event: 'bg-green-100 text-green-800', Result: 'bg-amber-100 text-amber-800', Notice: 'bg-red-100 text-red-800' };
+    let posts = [], cat = 'All';
+    // plain text -> safe paragraphs, with web addresses turned into links
+    function body(t) {
+        return String(t).split(/\n{2,}/).map(p => '<p class="mt-3 text-slate-700 leading-relaxed">' + esc(p).replace(/\n/g, '<br>')
+            .replace(/(https?:\/\/[^\s<]+)/g, '<a class="underline text-purple-700" target="_blank" rel="noopener" href="$1">$1</a>') + '</p>').join('');
+    }
+    function draw() {
+        const list = posts.filter(p => cat === 'All' || p.category === cat);
+        $('posts').innerHTML = list.map(p => `<article class="bg-white rounded-xl border ${p.pinned ? 'border-purple-300' : 'border-slate-200'} shadow-sm p-5">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="px-2 py-0.5 rounded-full font-semibold ${TONE[p.category] || TONE.News}">${esc(p.category)}</span>
+                ${p.pinned ? '<span class="px-2 py-0.5 rounded-full bg-slate-800 text-white font-semibold">Pinned</span>' : ''}
+                <time class="text-slate-500" datetime="${esc(p.posted_on)}">${esc(new Date(p.posted_on + 'T12:00:00').toLocaleDateString('en-GB', { dateStyle: 'long' }))}</time>
+            </div>
+            <h2 class="text-xl font-bold text-purple-950 mt-2">${esc(p.title)}</h2>${body(p.body)}</article>`).join('')
+            || '<div class="bg-white rounded-xl border border-slate-200 p-6 text-slate-600">No news in this section yet. Check back soon, or follow us on Facebook.</div>';
+        $('filters').innerHTML = ['All', 'News', 'Event', 'Result', 'Notice'].map(c => `<button type="button" data-c="${c}" class="px-3 py-1.5 rounded-full text-sm border ${c === cat ? 'bg-purple-700 text-white border-purple-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'}">${c}</button>`).join('');
+    }
+    $('filters').addEventListener('click', e => { if (e.target.dataset.c) { cat = e.target.dataset.c; draw(); } });
+    async function load() {
+        const { data, error } = await sb.from('news_posts').select('id,title,body,category,pinned,posted_on').eq('published', true)
+            .order('pinned', { ascending: false }).order('posted_on', { ascending: false }).limit(50);
+        if (error) { $('posts').innerHTML = '<div class="bg-white rounded-xl border border-slate-200 p-6 text-slate-600">The news could not be loaded just now. Please try again later.</div>'; return; }
+        posts = data || []; draw();
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: t } = await sb.from('tournaments').select('name,event_date,venue').eq('published', true).gte('event_date', today).order('event_date').limit(4);
+        $('upcoming').innerHTML = (t || []).map(x => `<li><b>${esc(x.name)}</b><br><span class="text-slate-600">${esc(new Date(x.event_date + 'T12:00:00').toLocaleDateString('en-GB', { dateStyle: 'medium' }))}${x.venue ? ' · ' + esc(x.venue) : ''}</span></li>`).join('') || '<li class="text-slate-500">Nothing booked yet.</li>';
+    }
+    load();
+</script>
+<script src="/auth-status.js"></script>
 </body>
 </html>

@@ -96,7 +96,8 @@
             card('/tournaments.html', 'Public Tournaments page', 'See it as an entrant does.', 'border-l-slate-400')].join('');
         $('nights').innerHTML = [card('/db/committee-club-nights.html', 'Club nights and attendees', 'Who is coming, move or cancel a night, weekly pattern and defaults.', 'border-l-green-500'),
             card('/db/club-nights.html', 'Booking page', 'See it as a member does.', 'border-l-slate-400')].join('');
-        $('other').innerHTML = [card('/records.html', 'Club records and 252', 'Records, and the record keeper panel for checking scores.', 'border-l-amber-500'),
+        $('other').innerHTML = [card('/db/committee-news.html', 'News posts', 'Write, publish and pin posts for the public News page.', 'border-l-purple-500'),
+            card('/records.html', 'Club records and 252', 'Records, and the record keeper panel for checking scores.', 'border-l-amber-500'),
             card('/db/security.html', 'Security and 2FA', 'Your authenticator app.', 'border-l-slate-400'),
             isMA ? card('/db/committee-backup.html', 'Download a backup', 'Save a copy of the club data to keep safe off the website. Last backup: ' + job('backup') + '.', 'border-l-amber-500') : '',
             isMA ? card('/db/committee-audit.html', 'Audit log', 'A permanent record of who changed roles, status, emails, backups and purges. Cannot be edited.', 'border-l-slate-500') : '',

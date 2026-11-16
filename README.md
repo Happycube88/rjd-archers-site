@@ -56,7 +56,9 @@ Run the scripts in the Supabase SQL editor, in this order, when building a new p
 12. `contact_messages.sql` (Contact us form messages)
 13. `roles_status_purge.sql` (committee roles, member status, beginner invitations, email-change control, backup and purge)
 14. `audit_log.sql` (permanent audit log for the Chair, Secretary and Membership)
-15. `bootstrap_first_committee.sql` (edit the email first; creates the first committee member)
+15. `audit_log_more.sql` (audit log for club nights, tournaments, records and website messages)
+16. `news_posts.sql` (News page posts)
+17. `bootstrap_first_committee.sql` (edit the email first; creates the first committee member)
 
 Then run `verify_policies.sql`: every row should say PASS. Run it again after any database change. Most scripts are safe to run twice.
 
