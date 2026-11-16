@@ -58,6 +58,7 @@
                     <input type="text" id="website" tabindex="-1" autocomplete="off">
                 </div>
 
+                <div id="tsBox"></div>
                 <button type="submit" id="submitBtn" class="w-full bg-purple-600 text-white py-2.5 rounded font-semibold hover:bg-purple-700">Register my interest</button>
                 <p class="text-xs text-slate-500">We use these details only to contact you about the beginner course. They are not shared.</p>
             </form>
@@ -97,6 +98,7 @@
                 guardian_name: $('guardian_name').value, guardian_email: $('guardian_email').value,
                 guardian_phone: $('guardian_phone').value, website: $('website').value
             };
+            const b = window.rjdBot ? window.rjdBot() : {}; body.t = b.t; body.ts = b.ts;
             if (!body.name.trim() || !body.email.trim() || !body.mobile.trim() || !body.postcode.trim() || !body.dob) {
                 return say('Please fill in every box above.', true);
             }
@@ -125,5 +127,6 @@
             $('submitBtn').disabled = false;
         });
     </script>
+<script src="/bot-guard.js"></script>
 </body>
 </html>

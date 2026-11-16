@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purge Old Data | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-4xl mx-auto space-y-5">
+    <p class="text-sm"><a class="underline text-purple-700" href="/committee.html">&larr; Committee area</a></p>
+
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+        <h1 class="text-2xl font-bold text-purple-950">Purge old personal data</h1>
+        <p class="text-sm text-slate-600">For people who have left or lapsed, and beginners the committee declined. A purge removes their name, address, phone, email, date of birth, next of kin, sign-in, parent links, 252 scores, and any enquiries or website messages from their email address. It keeps tournament fees, booking counts and, unless you choose otherwise, their name on the club records. <b>It cannot be undone</b>, so take a backup first if you are unsure. Only the Chair or Secretary can do this.</p>
+        <p id="last" class="text-sm font-medium text-slate-700"></p>
+        <div id="gate" class="text-sm"></div>
+    </div>
+
+    <div id="work" class="hidden space-y-5">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">People who can be purged</h2>
+            <p class="text-xs text-slate-500">Mark someone as Left or Lapsed on <a class="underline text-purple-700" href="/db/committee-edit-member.html">Edit people</a> first. Anyone holding a committee role must have it removed before they can be marked as left.</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-2">Name</th><th class="p-2">Type</th><th class="p-2">Why</th><th class="p-2">Since</th><th class="p-2"></th></tr></thead>
+                    <tbody id="rows"><tr><td colspan="5" class="p-3 text-center text-slate-500">Loading…</td></tr></tbody>
+                </table>
+            </div>
+            <button id="reviewBtn" type="button" class="text-sm bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded px-3 py-1.5">I have reviewed the list: nobody needs purging</button>
+        </div>
+
+        <div id="confirmBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-red-300 space-y-3">
+            <h2 class="text-lg font-bold text-red-800">Purge <span id="pName"></span></h2>
+            <label class="block text-sm">Type their full name to confirm
+                <input id="pConfirm" autocomplete="off" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            <label class="block text-sm"><input type="checkbox" id="pBlank"> Also replace their name on the club records with “Former member”</label>
+            <div class="flex gap-3">
+                <button id="goBtn" type="button" class="bg-red-700 hover:bg-red-800 text-white px-5 py-2.5 rounded font-semibold">Purge for good (needs 2FA)</button>
+                <button id="cancelBtn" type="button" class="px-4 py-2.5 rounded border border-slate-300">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium" role="status" aria-live="polite"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const say = (t, bad) => { $('msg').className = 'text-sm text-center font-medium ' + (bad ? 'text-red-600' : 'text-green-700'); $('msg').textContent = t || ''; };
+    const when = d => d ? new Date(d).toLocaleDateString('en-GB', { dateStyle: 'medium' }) : '';
+    let current = null;
+
+    async function showLast() {
+        const { data: jobs } = await sb.rpc('job_last_run');
+        const p = (jobs || []).find(j => j.job === 'purge');
+        $('last').textContent = p ? 'Last purge run: ' + new Date(p.last_run_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) + (p.run_by ? ' by ' + p.run_by : '') + (p.detail ? ' (' + p.detail + ')' : '') : 'No purge has been run yet.';
+    }
+
+    async function load() {
+        const [{ data: people, error }, { data: notes }] = await Promise.all([
+            sb.from('members').select('id,name,membertype,status,status_date').neq('status', 'purged').order('name'),
+            sb.from('member_committee_notes').select('member_id,join_decision,join_decision_on')
+        ]);
+        if (error) return say(error.message, true);
+        const declined = new Map((notes || []).filter(n => n.join_decision === 'declined').map(n => [n.member_id, n]));
+        const rows = (people || []).filter(m => m.status === 'left' || m.status === 'lapsed' || declined.has(m.id)).map(m => {
+            const why = m.status === 'left' ? 'Left the club' : m.status === 'lapsed' ? 'Membership lapsed' : 'Beginner declined';
+            const since = m.status === 'left' || m.status === 'lapsed' ? m.status_date : (declined.get(m.id) || {}).join_decision_on;
+            return `<tr class="border-b border-slate-100"><td class="p-2 font-medium">${esc(m.name)}</td><td class="p-2">${esc(m.membertype)}</td><td class="p-2">${esc(why)}</td><td class="p-2">${esc(when(since))}</td>
+                <td class="p-2"><button type="button" class="pick text-red-700 underline" data-id="${esc(m.id)}" data-name="${esc(m.name)}">Purge…</button></td></tr>`;
+        });
+        $('rows').innerHTML = rows.join('') || '<tr><td colspan="5" class="p-3 text-center text-slate-500">Nobody is waiting to be purged.</td></tr>';
+    }
+
+    $('rows').addEventListener('click', e => {
+        if (!e.target.classList.contains('pick')) return;
+        current = { id: e.target.dataset.id, name: e.target.dataset.name };
+        $('pName').textContent = current.name; $('pConfirm').value = ''; $('pBlank').checked = false;
+        $('confirmBox').classList.remove('hidden'); $('confirmBox').scrollIntoView({ behavior: 'smooth' }); say('');
+    });
+    $('cancelBtn').addEventListener('click', () => { current = null; $('confirmBox').classList.add('hidden'); });
+
+    $('goBtn').addEventListener('click', async () => {
+        if (!current) return;
+        const { data, error } = await sb.rpc('committee_purge_member', { p_member: current.id, p_confirm: $('pConfirm').value, p_blank_records: $('pBlank').checked });
+        if (error) return say(error.code === '42501' ? 'Chair or Secretary with 2FA only: enter your 2FA code first.' : error.message, true);
+        say(`${current.name} has been purged. Removed: ${data.scores_removed} scores, ${data.enquiries_removed} enquiries, ${data.messages_removed} messages${data.login_removed ? ', and their sign-in' : ''}.`);
+        current = null; $('confirmBox').classList.add('hidden'); await load(); await showLast();
+    });
+
+    $('reviewBtn').addEventListener('click', async () => {
+        const { error } = await sb.rpc('committee_log_purge_review');
+        if (error) return say(error.code === '42501' ? 'Chair or Secretary with 2FA only: enter your 2FA code first.' : error.message, true);
+        say('Review recorded.'); await showLast();
+    });
+
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { $('gate').innerHTML = '<a class="underline text-purple-700" href="/committee.html">Sign in on the Committee area first.</a>'; return; }
+        const { data: ok } = await sb.rpc('is_chair_or_secretary');
+        if (ok !== true) { $('gate').textContent = 'Only the Chair or Secretary can purge data.'; await showLast(); return; }
+        const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        $('gate').innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>' : '<span class="text-red-700">2FA needed.</span> <a class="underline text-purple-700" href="/db/security.html?next=/db/committee-purge.html">Enter your 2FA code</a>';
+        $('work').classList.remove('hidden');
+        await showLast(); await load();
+    }
+    start();
+</script>
+</body>
+</html>

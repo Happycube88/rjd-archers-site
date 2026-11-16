@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Log | RJD Archers Committee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6 font-sans text-slate-800">
+<div class="max-w-5xl mx-auto space-y-5">
+    <p class="text-sm"><a class="underline text-purple-700" href="/committee.html">&larr; Committee area</a></p>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+        <h1 class="text-2xl font-bold text-purple-950">Audit log</h1>
+        <p class="text-sm text-slate-600">A permanent record of sensitive changes: roles, membership status, beginner decisions, email changes, backups and purges. Nobody can edit or delete an entry, not even the Chair. Only the Chair, Secretary and Membership roles can read it. It holds no email addresses or other personal details, only who did what to whom, and when.</p>
+        <div id="gate" class="text-sm"></div>
+    </div>
+    <div id="work" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
+        <div class="flex flex-wrap gap-3 items-center">
+            <label class="text-sm">Search <input id="q" class="border border-slate-300 rounded p-1.5 ml-1" placeholder="name or action"></label>
+            <span id="count" class="text-xs text-slate-500"></span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead><tr class="bg-slate-100 border-b border-slate-200"><th class="p-2">When</th><th class="p-2">Who did it</th><th class="p-2">What</th><th class="p-2">To whom</th><th class="p-2">Detail</th></tr></thead>
+                <tbody id="rows"><tr><td colspan="5" class="p-3 text-center text-slate-500">Loading…</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="msg" class="text-sm text-center font-medium" role="status" aria-live="polite"></div>
+</div>
+<script>
+    const SUPABASE_URL = 'https://onepmhddrqmvhyhagkth.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9uZXBtaGRkcnFtdmh5aGFna3RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NTU4MTQsImV4cCI6MjEwODAzMTgxNH0.puqAvMFt-SpG6cVedHFVSrLIx4NifALgbcJka1aXbfw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let all = [];
+    function draw() {
+        const q = $('q').value.trim().toLowerCase();
+        const rows = all.filter(r => !q || [r.actor, r.action, r.subject, r.detail].join(' ').toLowerCase().includes(q));
+        $('count').textContent = rows.length + ' of ' + all.length + ' shown (latest first)';
+        $('rows').innerHTML = rows.map(r => `<tr class="border-b border-slate-100"><td class="p-2 whitespace-nowrap">${esc(new Date(r.at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }))}</td>
+            <td class="p-2">${esc(r.actor)}</td><td class="p-2 font-medium">${esc(r.action)}</td><td class="p-2">${esc(r.subject)}</td><td class="p-2">${esc(r.detail || '')}</td></tr>`).join('')
+            || '<tr><td colspan="5" class="p-3 text-center text-slate-500">Nothing recorded yet.</td></tr>';
+    }
+    $('q').addEventListener('input', draw);
+    async function start() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { $('gate').innerHTML = '<a class="underline text-purple-700" href="/committee.html">Sign in on the Committee area first.</a>'; return; }
+        const { data: ok } = await sb.rpc('is_membership_admin');
+        if (ok !== true) { $('gate').textContent = 'The audit log can be read by the Chair, Secretary and Membership roles only.'; return; }
+        $('work').classList.remove('hidden');
+        const { data, error } = await sb.rpc('audit_view', { p_limit: 1000 });
+        if (error) { $('msg').className = 'text-sm text-center font-medium text-red-600'; $('msg').textContent = error.message; return; }
+        all = data || []; draw();
+    }
+    start();
+</script>
+</body>
+</html>

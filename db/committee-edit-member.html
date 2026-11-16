@@ -7,6 +7,7 @@
     <title>Edit Members | RJD Archers Committee</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
 </head>
 <body class="bg-slate-50 p-6 font-sans text-slate-800">
 <div class="max-w-6xl mx-auto px-4 pt-3 text-sm"><a class="underline text-purple-700" href="/committee.html">&larr; Committee area</a></div>
@@ -20,6 +21,12 @@
     </div>
 
     <div id="work" class="hidden space-y-6">
+        <div id="emailInbox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-purple-200 space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">Email change requests</h2>
+            <p class="text-xs text-slate-500">Members cannot change their own email address. Check that the request is genuine (you know the person, or have asked them) before approving. Approving removes their old sign-in: they sign in with the new address and set up 2FA again. The Chair, Secretary or Membership can decide; nobody can approve their own.</p>
+            <ul id="reqList" class="text-sm space-y-2"></ul>
+        </div>
+
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-3">
             <h2 class="text-lg font-bold text-purple-950">Find a person</h2>
             <input id="search" placeholder="Type part of a name or email…" class="w-full border border-slate-300 p-2 rounded text-sm">
@@ -102,15 +109,51 @@
                     <label><input type="checkbox" id="e_secretarycom"> Secretary</label>
                     <label><input type="checkbox" id="e_membershipcom"> Membership</label>
                     <label><input type="checkbox" id="e_welfarecom"> Welfare</label>
+                    <label><input type="checkbox" id="e_treasurercom"> Treasurer</label>
                     <label><input type="checkbox" id="e_tournamentscom"> Tournaments</label>
                     <label><input type="checkbox" id="e_recordkeeper"> Record keeper</label>
-                    <label title="Opens up and sets up club nights. Needs 4+ years from the join date."><input type="checkbox" id="e_sessionlead"> Session lead (4+ years)</label>
+                    <label title="Sets up club nights, especially outdoors. Only the Chair or Secretary can give this role. Needs 4+ years from the join date."><input type="checkbox" id="e_sessionlead"> Club night setup (4+ years)</label>
                 </div>
-                <p class="text-xs text-slate-600">Any of the five committee boxes gives full committee access today. There must always be at least one committee member.</p>
+                <p id="roleNote" class="text-xs text-slate-600">Chair, Secretary, Membership, Welfare, Treasurer and Tournaments give committee access, including the member list and everyone's details. Record keeper (records and 252 scores) and Club night setup (club night lists) do not. Only the Chair and Secretary can change roles, status and beginner decisions or make someone a member. There must always be a Chair or Secretary.</p>
             </fieldset>
 
             <button class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded font-semibold">Save changes (needs 2FA)</button>
         </form>
+
+        <div id="adminBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-amber-200 space-y-5">
+            <h2 class="text-lg font-bold text-purple-950">Membership status (Chair or Secretary)</h2>
+            <label class="block text-sm">Private committee note <span class="text-xs text-slate-500">(never shown to the person)</span>
+                <input id="s_note" maxlength="200" class="w-full border border-slate-300 p-2 rounded mt-1"></label>
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-end gap-3">
+                    <label class="text-sm">Status
+                        <select id="s_status" class="block border border-slate-300 p-2 rounded mt-1"><option value="active">Active</option><option value="lapsed">Lapsed</option><option value="left">Left the club</option></select></label>
+                    <button type="button" id="saveStatus" class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-semibold">Save status (needs 2FA)</button>
+                </div>
+                <p id="statusInfo" class="text-xs text-slate-500"></p>
+                <p class="text-xs text-slate-500">Only active people can book club nights or enter tournaments. Remove any committee roles before marking someone as left. Left or lapsed people can then be purged on the <a class="underline text-purple-700" href="/db/committee-purge.html">Purge page</a>.</p>
+            </div>
+            <div id="decisionSection" class="hidden space-y-2 p-3 bg-purple-50 rounded border border-purple-100">
+                <h3 class="font-semibold text-sm text-purple-900">After the beginners course</h3>
+                <div class="flex flex-wrap items-end gap-3">
+                    <label class="text-sm">Decision
+                        <select id="d_decision" class="block border border-slate-300 p-2 rounded mt-1"><option value="pending">Not decided</option><option value="invited">Invite to join the club</option><option value="declined">Decline</option></select></label>
+                    <button type="button" id="saveDecision" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-semibold">Save decision (needs 2FA)</button>
+                </div>
+                <p class="text-xs text-slate-600">Inviting needs the course proof recorded above. An invited beginner is made a member on the <a class="underline text-purple-700" href="/db/committee-add-member.html">Add people</a> page. A declined person stays on the list so a repeat application is spotted; the website never tells them why.</p>
+            </div>
+        </div>
+
+        <div id="emailBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-amber-200 space-y-3">
+            <h2 class="text-lg font-bold text-purple-950">Change email address</h2>
+            <p class="text-sm">Current address: <b id="curEmailAdmin"></b></p>
+            <p class="text-xs text-slate-500">Removes their current sign-in. They then sign in with the new address (we email them a link) and set up 2FA again. Under-18s may have no email address: leave the box empty.</p>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input type="email" id="newEmailAdmin" maxlength="254" placeholder="New email address" aria-label="New email address" class="flex-1 border border-slate-300 p-2 rounded">
+                <button type="button" id="changeEmailBtn" class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-semibold">Change email (needs 2FA)</button>
+            </div>
+            <p id="emailSelf" class="hidden text-xs text-amber-800">You cannot change your own email. Ask another Chair, Secretary or Membership member.</p>
+        </div>
 
         <div id="familyBox" class="hidden bg-white p-6 rounded-xl shadow-sm border border-amber-200 space-y-4">
             <div id="guardSection" class="hidden space-y-3">
@@ -148,7 +191,7 @@
     const age = dob => dob ? Math.floor((Date.now() - new Date(dob)) / 31557600000) : '?';
     const TEXT = ['title','name','mobile','address1','town','county','postcode','archerygbnum','next_of_kin_name','next_of_kin_phone','fee_category','course_source','course_note','membertype','home_club'];
     const DATES = ['dob','datejoinedclub','course_date'];
-    const BOOLS = ['firstaider','flagfor_allowphotos','chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','recordkeeper','sessionlead'];
+    const BOOLS = ['firstaider','flagfor_allowphotos','chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','treasurercom','recordkeeper','sessionlead'];
     let people = [], links = [], current = null;
 
     const gaps = m => { const g = [];
@@ -176,7 +219,7 @@
         people = data || [];
         const { data: l } = await sb.from('member_guardians').select('*');
         links = l || [];
-        renderPeople();
+        renderPeople(); loadRequests();
         if (keepId) select(keepId, true);
     }
 
@@ -189,9 +232,9 @@
         $('e_coachlevel').value = current.coachlevel ?? 0;
         $('e_email').value = current.email ?? '';
         $('e_email').readOnly = !!current.auth_id;
-        $('emailNote').textContent = current.auth_id ? '(locked: they have signed in with it)' : '';
+        $('emailNote').textContent = current.auth_id ? '(locked: use Change email below)' : (isUnder18(current.dob) ? '(optional for under-18s)' : '');
         BOOLS.forEach(k => $('e_' + k).checked = !!current[k]);
-        renderFamily();
+        renderFamily(); loadAdmin();
         if (!quiet) { say(''); $('editForm').scrollIntoView(); }
     }
 
@@ -249,6 +292,81 @@
         say('Parent or guardian added.'); await loadAll(current.id);
     });
 
+    let isCS = false, isMA = false, myId = null;
+
+    function applyRights() {
+        if (!isCS) {
+            ['chaircom','secretarycom','membershipcom','welfarecom','tournamentscom','treasurercom','recordkeeper','sessionlead'].forEach(k => $('e_' + k).disabled = true);
+            const opt = document.querySelector('#e_membertype option[value="member"]'); if (opt) opt.disabled = true;
+            $('roleNote').textContent = 'Only the Chair or Secretary can change roles, status and beginner decisions or make someone a member.';
+        }
+    }
+
+    async function loadAdmin() {
+        const under = isUnder18(current.dob);
+        $('adminBox').classList.toggle('hidden', !isCS);
+        $('emailBox').classList.toggle('hidden', !isMA);
+        if (isCS) {
+            $('s_status').value = current.status || 'active';
+            $('statusInfo').textContent = current.status_date && current.status !== 'active' ? 'Since ' + new Date(current.status_date).toLocaleDateString('en-GB', { dateStyle: 'medium' }) + '.' : '';
+            $('decisionSection').classList.toggle('hidden', current.membertype !== 'beginner');
+            const { data: n } = await sb.from('member_committee_notes').select('*').eq('member_id', current.id).maybeSingle();
+            $('s_note').value = (n && n.note) || '';
+            $('d_decision').value = (n && n.join_decision) || 'pending';
+        }
+        if (isMA) {
+            $('curEmailAdmin').textContent = current.email || '(none)';
+            $('newEmailAdmin').value = '';
+            const self = current.id === myId;
+            $('emailSelf').classList.toggle('hidden', !self);
+            $('changeEmailBtn').disabled = self; $('newEmailAdmin').disabled = self;
+        }
+    }
+
+    const rpcMsg = e => e.code === '42501' ? 'Enter your 2FA code first (and check you hold the right role).' : e.message;
+    $('saveStatus').addEventListener('click', async () => {
+        if (!current) return;
+        if ($('s_status').value === 'left' && !confirm('Mark ' + current.name + ' as having left the club? They will no longer be able to book or enter.')) return;
+        const { error } = await sb.rpc('committee_set_status', { p_member: current.id, p_status: $('s_status').value, p_note: $('s_note').value });
+        if (error) return say(rpcMsg(error), true);
+        say('Status saved.'); await loadAll(current.id);
+    });
+    $('saveDecision').addEventListener('click', async () => {
+        if (!current) return;
+        if ($('d_decision').value === 'declined' && !confirm('Decline ' + current.name + '? They stay on the list so a repeat application is spotted.')) return;
+        const { error } = await sb.rpc('committee_decide_join', { p_member: current.id, p_decision: $('d_decision').value, p_note: $('s_note').value });
+        if (error) return say(rpcMsg(error), true);
+        say('Decision saved.'); await loadAll(current.id);
+    });
+    $('changeEmailBtn').addEventListener('click', async () => {
+        if (!current) return;
+        const v = $('newEmailAdmin').value.trim();
+        if (!confirm('Change ' + current.name + '’s email to ' + (v || '(none)') + '? Their current sign-in will be removed and they will need to sign in again and set up 2FA.')) return;
+        const { error } = await sb.rpc('committee_set_email', { p_member: current.id, p_new_email: v });
+        if (error) return say(rpcMsg(error), true);
+        say('Email changed. They can now sign in with the new address.'); await loadAll(current.id);
+    });
+
+    async function loadRequests() {
+        if (!isMA) return;
+        const { data, error } = await sb.from('email_change_requests').select('*').eq('status', 'pending').order('requested_at');
+        if (error) return;
+        $('emailInbox').classList.toggle('hidden', !(data && data.length) && location.hash !== '#emails');
+        const nameOf = id => (people.find(p => p.id === id) || {}).name || 'Unknown';
+        $('reqList').innerHTML = (data || []).map(r => `<li class="flex flex-wrap items-center justify-between gap-2 p-2 bg-slate-50 rounded border border-slate-200">
+            <span><b>${esc(nameOf(r.member_id))}</b> wants to change to <b>${esc(r.new_email)}</b> <span class="text-xs text-slate-500">(asked ${esc(new Date(r.requested_at).toLocaleDateString('en-GB', { dateStyle: 'medium' }))})</span></span>
+            <span class="flex gap-3"><button type="button" class="req text-green-700 underline" data-id="${esc(r.id)}" data-act="approve">Approve</button><button type="button" class="req text-red-600 underline" data-id="${esc(r.id)}" data-act="reject">Reject</button></span></li>`).join('')
+            || '<li class="text-slate-500">No requests waiting.</li>';
+    }
+    $('reqList').addEventListener('click', async e => {
+        if (!e.target.classList.contains('req')) return;
+        const approve = e.target.dataset.act === 'approve';
+        if (approve && !confirm('Approve this change? Their current sign-in will be removed.')) return;
+        const { error } = await sb.rpc('committee_decide_email_change', { p_request: +e.target.dataset.id, p_approve: approve });
+        if (error) return say(rpcMsg(error), true);
+        say(approve ? 'Approved. They can sign in with the new address.' : 'Request rejected.'); await loadAll(current && current.id);
+    });
+
     async function start() {
         const { data: { session } } = await sb.auth.getSession();
         const gate = $('gate');
@@ -266,6 +384,8 @@
         const { data: a } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
         gate.innerHTML = (a && a.currentLevel === 'aal2') ? '<span class="text-green-700">Signed in with 2FA ✓</span>'
             : '<span class="text-red-700">2FA needed to change anything.</span>';
+        const [{ data: cs }, { data: ma }, { data: mid }] = await Promise.all([sb.rpc('is_chair_or_secretary'), sb.rpc('is_membership_admin'), sb.rpc('my_member_id')]);
+        isCS = cs === true; isMA = ma === true; myId = mid; applyRights();
         $('work').classList.remove('hidden');
         await loadAll(new URLSearchParams(location.search).get('id'));
     }

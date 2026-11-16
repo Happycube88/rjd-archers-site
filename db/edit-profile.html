@@ -7,6 +7,7 @@
     <title>Edit Profile & 2FA | RJD Archers</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/idle-timeout.js"></script>
 </head>
 <body class="bg-slate-50 p-6 font-sans text-slate-800">
 <div class="max-w-6xl mx-auto px-4 pt-3 text-sm"><a class="underline text-purple-700" href="/members.html">&larr; Members area</a></div>
@@ -58,6 +59,18 @@
                     <button type="submit" class="w-full bg-green-600 text-white py-2.5 rounded font-semibold hover:bg-green-700">Save Changes (Requires 2FA)</button>
                 </form>
 
+                <!-- Email address: changed only with committee approval -->
+                <div id="emailBox" class="space-y-3 pt-4 border-t border-slate-200">
+                    <h2 class="text-lg font-bold text-purple-950">Your email address</h2>
+                    <p class="text-sm">Current address: <b id="curEmail"></b></p>
+                    <p class="text-xs text-slate-500">To protect your account, you cannot change your email address yourself. Send a request and a committee member will approve it. After approval you sign in with the new address (we email you a link) and set up your 2FA again.</p>
+                    <p id="emailPending" class="hidden text-sm p-2 rounded bg-amber-50 border border-amber-200 text-amber-900"></p>
+                    <form id="emailForm" class="flex flex-col sm:flex-row gap-2">
+                        <input type="email" id="newEmail" required maxlength="254" placeholder="New email address" aria-label="New email address" class="flex-1 border border-slate-300 p-2 rounded">
+                        <button class="bg-slate-700 hover:bg-slate-800 text-white px-4 py-2 rounded text-sm font-semibold">Ask the committee to change it</button>
+                    </form>
+                </div>
+
                 <!-- Parents / guardians: children's details -->
                 <div id="kidsSection" class="hidden space-y-4 pt-4 border-t border-slate-200">
                     <h2 class="text-lg font-bold text-purple-950">Your children</h2>
@@ -103,6 +116,8 @@
                     // parents who are not archers do not need their own next of kin
                     document.getElementById('nokBox').classList.toggle('hidden', data.membertype === 'parent');
                     window.__me = data;
+                    document.getElementById('curEmail').textContent = data.email || '(none)';
+                    loadEmailRequest(data.id);
                     loadKids(data.id);
                 }
             }
@@ -146,6 +161,30 @@
             } else {
                 msg.innerHTML = "Profile successfully updated!";
                 msg.className = "text-green-600 text-center";
+            }
+        });
+
+        async function loadEmailRequest(myId) {
+            const { data } = await supabaseClient.from('email_change_requests').select('*').eq('member_id', myId).order('requested_at', { ascending: false }).limit(1);
+            const r = data && data[0], box = document.getElementById('emailPending');
+            if (!r) { box.classList.add('hidden'); return; }
+            const when = new Date(r.requested_at).toLocaleDateString('en-GB', { dateStyle: 'medium' });
+            const text = r.status === 'pending' ? 'Waiting for the committee: change to ' + r.new_email + ' (asked on ' + when + ').'
+                : r.status === 'rejected' ? 'Your last request (' + r.new_email + ', ' + when + ') was not approved. Contact the committee if you need to know why.'
+                : '';
+            box.textContent = text; box.classList.toggle('hidden', !text);
+        }
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('msg');
+            const { error } = await supabaseClient.rpc('request_email_change', { p_new_email: document.getElementById('newEmail').value });
+            if (error) {
+                msg.innerHTML = error.code === '42501' ? "Enter your 2FA code first (<a class='underline' href='/db/security.html?next=/db/edit-profile.html'>do it here</a>)." : error.message;
+                msg.className = 'text-red-600 text-center';
+            } else {
+                msg.textContent = 'Request sent. A committee member will review it.'; msg.className = 'text-green-600 text-center';
+                document.getElementById('newEmail').value = '';
+                if (window.__me) loadEmailRequest(window.__me.id);
             }
         });
 
